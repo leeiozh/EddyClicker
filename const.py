@@ -1,9 +1,11 @@
 from netCDF4 import Dataset
 import numpy as np
 
+SELECT_MANUAL = False
+
 TRACKS_FOLDER = "track_folder/"
 FILE_BACK = "rortex_2d_criteria_HiRes_level_12_2010-01.nc"
-FILE_CYC = "HiRes_2010-01.nc"
+FILE_EDD = "HiRes_2010-01.nc"
 FILE_SAVE = "test.txt"
 
 FILE_LAND = "NAAD14km_hgt.nc"

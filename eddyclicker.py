@@ -1,5 +1,8 @@
 import tkinter as tk
 from tkinter import filedialog
+import matplotlib
+
+matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from scipy.interpolate import RectBivariateSpline
@@ -10,9 +13,19 @@ from track import *
 class MapApp(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("CycloneClicker")
-        self.file_back = FILE_BACK  # filedialog.askopenfilename(title="Select file with fields", filetypes=[("All Files", "*.nc")])
-        self.file_cyc = FILE_CYC  # filedialog.askopenfilename(title="Select file with cyclones", filetypes=[("All Files", "*.nc")])
+        self.title("EddyClicker")
+        if SELECT_MANUAL:
+            self.file_back = filedialog.askopenfilename(title="Select file with fields",
+                                                        filetypes=[("All Files", "*.nc")])
+            self.file_edd = filedialog.askopenfilename(title="Select file with eddies",
+                                                       filetypes=[("All Files", "*.nc")])
+            self.save_file = filedialog.asksaveasfilename(title="Select a path where save file",
+                                                          defaultextension=".txt",
+                                                          filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")])
+        else:
+            self.file_back = FILE_BACK
+            self.file_edd = FILE_EDD
+            self.save_file = FILE_SAVE
         self.shot = 0  # current index of shot
 
         self.R_2d = None  # current criteria data
@@ -25,13 +38,13 @@ class MapApp(tk.Tk):
         self.tracks = []  # array of tracks
         self.index_active_track = 0
 
-        if not self.file_back or not self.file_cyc:
+        if not self.file_back or not self.file_edd:
             messagebox.showerror("Error", "One of necessary files was not selected! Exiting...")
             self.destroy()
             return
 
         self.file_back = Dataset(self.file_back)
-        self.file_cyc = Dataset(self.file_cyc)
+        self.file_edd = Dataset(self.file_edd)
 
         if self.file_back["XLAT"].shape[1] != 550 or self.file_back["XLAT"].shape[2] != 550:
             messagebox.showerror("Error", "Number of knots not equal 550! Exiting...")
@@ -42,8 +55,6 @@ class MapApp(tk.Tk):
         self.lon_int = RectBivariateSpline(np.arange(550), np.arange(550), self.file_back["XLONG"][0, :, :])
 
         self.mesh_lon, self.mesh_lat = np.meshgrid(np.arange(550), np.arange(550))
-        self.save_file = FILE_SAVE  # filedialog.asksaveasfilename(title="Select a path where save file",
-        #                   defaultextension=".txt", filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")])
 
         if not self.save_file:
             messagebox.showerror("Error", "File path to save was not selected. Exiting...")
@@ -90,7 +101,7 @@ class MapApp(tk.Tk):
         self.geo = self.ax.contour(self.mesh_lon, self.mesh_lat, self.file_back["geopotential"][self.shot, 0, :, :],
                                    levels=50, colors="k", linewidths=0.2)
 
-        mask = self.file_cyc["center"][self.shot, 0, :, :] > 0
+        mask = self.file_edd["center"][self.shot, 0, :, :] > 0
         self.curr_centers = self.ax.scatter(self.mesh_lon[mask], self.mesh_lat[mask], c="k", s=40, zorder=6)
 
         self.ax.set_title((dt.datetime(year=1979, month=1, day=1) + dt.timedelta(
@@ -156,12 +167,12 @@ class MapApp(tk.Tk):
             self.canvas.draw()
 
     def is_center(self, x, y, c=0):
-        mask = self.file_cyc["center"][self.shot + c, 0, :, :] > 0
+        mask = self.file_edd["center"][self.shot + c, 0, :, :] > 0
         centers = np.column_stack((self.mesh_lon[mask], self.mesh_lat[mask]))
         for center in centers:
             if np.isclose([x, y], center, atol=2).all():
-                return True, Point(center[0], center[1])
-        return False, Point(-1, -1)
+                return True, Point(center[0], center[1], self.shot + c)
+        return False, Point(-1, -1, -1)
 
     def in_track(self, point):
         for track in self.tracks:
@@ -173,7 +184,7 @@ class MapApp(tk.Tk):
         response = messagebox.askyesno("Save Track", "Do you want to save this track?")
         if response:
             filename = self.save_file
-            self.tracks[index].save(filename, self.lat_int, self.lon_int)
+            self.tracks[index].save(filename, self.lat_int, self.lon_int, self.file_back["XTIME"][:])
             messagebox.showinfo("Saving", f"Track was added into '{filename}'.")
             print(f"Track {index} was saved.")
 
