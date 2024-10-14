@@ -59,6 +59,7 @@ class MapApp(tk.Tk):
         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
         self.canvas.mpl_connect("button_press_event", self.on_click)
+        self.canvas.mpl_connect("button_press_event", self.on_double_click)
         self.canvas.mpl_connect("motion_notify_event", self.on_mouse_move)
         self.bind("<Down>", self.go_back)
         self.bind("<Up>", self.go_forward)
@@ -145,7 +146,7 @@ class MapApp(tk.Tk):
             self.load_tracks(folder_path)
 
     def on_click(self, event):
-        if event.inaxes != self.ax:
+        if event.inaxes != self.ax or event.dblclick:
             return
 
         if event.button == 1:
@@ -180,6 +181,26 @@ class MapApp(tk.Tk):
                 cent_track = self.in_track(cent)
                 self.ask_to_save_track(cent_track)
         self.canvas.draw()
+
+    def on_double_click(self, event):
+        if event.dblclick:
+            if event.inaxes != self.ax:
+                return
+
+            cent_f, cent = self.is_center(event.xdata, event.ydata, -1)
+            if cent_f:
+                cent_track = self.in_track(cent)
+                if cent_track != -1:
+                    point_index = -1
+                    print(cent_track)
+                    for i, p in enumerate(self.tracks[cent_track].points):
+                        if p.x == cent.x and p.y == cent.y:
+                            point_index = i
+                            break
+                    if point_index != -1:
+                        self.tracks[cent_track].points.pop(point_index)
+                        self.tracks[cent_track].draw()
+                        self.canvas.draw()
 
     def on_mouse_move(self, event):
         if self.prev_point and event.inaxes == self.ax:
