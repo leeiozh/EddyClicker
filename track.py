@@ -1,4 +1,3 @@
-from tkinter import messagebox
 from const import *
 
 
@@ -31,18 +30,8 @@ class Track:
             self.plot.remove()
         self.plot = self.ax.plot([p.x for p in self.points], [p.y for p in self.points], c="k", lw=1)[0]
 
-    def save(self, filename, lat_int, lon_int, time_arr):
-        with open(TRACKS_FOLDER + f"{filename}", 'a') as f:
-            f.write(f"{self.index};time;")
-            for point in self.points:
-                f.write(f"{time_arr[point.t]:.0f};")
-            f.write("\n")
-            f.write(f"{self.index};lat;")
-            for point in self.points:
-                f.write(f"{lat_int(point.x, point.y)[0][0]};")
-            f.write("\n")
-            f.write(f"{self.index};lon;")
-            for point in self.points:
-                f.write(f"{lon_int(point.x, point.y)[0][0]};")
-            f.write("\n")
+    def save(self, lat_int, lon_int, time_arr):
+        with open(f"{TRACKS_FOLDER}/{self.index}.csv", 'w') as f:
+            for po in self.points:
+                f.write(f"{time_arr[po.t]:.0f};{lat_int(po.x, po.y)[0][0]};{lon_int(po.x, po.y)[0][0]};{po.x};{po.y}\n")
         self.plot.remove()

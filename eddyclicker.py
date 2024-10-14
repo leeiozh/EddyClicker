@@ -1,12 +1,12 @@
 import tkinter as tk
-from tkinter import filedialog
-import matplotlib
-
-matplotlib.use("TkAgg")
+from tkinter import filedialog, messagebox
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from scipy.interpolate import RectBivariateSpline
 import datetime as dt
+from glob import glob
 from track import *
 
 
@@ -14,20 +14,28 @@ class MapApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("EddyClicker")
-        if SELECT_MANUAL:
-            self.file_back = filedialog.askopenfilename(title="Select file with fields",
-                                                        filetypes=[("All Files", "*.nc")])
-            self.file_edd = filedialog.askopenfilename(title="Select file with eddies",
-                                                       filetypes=[("All Files", "*.nc")])
-            self.save_file = filedialog.asksaveasfilename(title="Select a path where save file",
-                                                          defaultextension=".txt",
-                                                          filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")])
-        else:
-            self.file_back = FILE_BACK
-            self.file_edd = FILE_EDD
-            self.save_file = FILE_SAVE
-        self.shot = 0  # current index of shot
+        self.path_file_back = FILE_BACK
+        self.path_file_edd = FILE_EDD
+        self.path_save_file = TRACKS_FOLDER
 
+        toolbar_frame = tk.Frame(self)
+        toolbar_frame.pack(side=tk.TOP)
+
+        btn_open_back = tk.Button(toolbar_frame, text="Open criteria file", command=self.select_file_back)
+        btn_open_back.pack(side=tk.LEFT, padx=5, pady=5)
+
+        btn_open_cyc = tk.Button(toolbar_frame, text="Open centers file", command=self.select_file_edd)
+        btn_open_cyc.pack(side=tk.LEFT, padx=5, pady=5)
+
+        btn_open_save_folder = tk.Button(toolbar_frame, text="Open save folder", command=self.select_save_folder)
+        btn_open_save_folder.pack(side=tk.LEFT, padx=5, pady=5)
+
+        self.file_back = Dataset(self.path_file_back)
+        ds = Dataset(self.path_file_edd)
+        self.centers = ds["center"][:, 0, :, :]
+        ds.close()
+
+        self.shot = 0  # current index of shot
         self.R_2d = None  # current criteria data
         self.geo = None  # current geopotential data
         self.curr_centers = None  # current position of centers
@@ -36,45 +44,31 @@ class MapApp(tk.Tk):
         self.prev_point = None
 
         self.tracks = []  # array of tracks
-        self.index_active_track = 0
 
-        if not self.file_back or not self.file_edd:
-            messagebox.showerror("Error", "One of necessary files was not selected! Exiting...")
-            self.destroy()
-            return
+        self.lat_int = RectBivariateSpline(np.arange(self.file_back["XLAT"].shape[1]),
+                                           np.arange(self.file_back["XLAT"].shape[2]),
+                                           self.file_back["XLAT"][0, :, :])
+        self.lon_int = RectBivariateSpline(np.arange(self.file_back["XLONG"].shape[1]),
+                                           np.arange(self.file_back["XLONG"].shape[2]),
+                                           self.file_back["XLONG"][0, :, :])
 
-        self.file_back = Dataset(self.file_back)
-        self.file_edd = Dataset(self.file_edd)
-
-        if self.file_back["XLAT"].shape[1] != 550 or self.file_back["XLAT"].shape[2] != 550:
-            messagebox.showerror("Error", "Number of knots not equal 550! Exiting...")
-            self.destroy()
-            return
-
-        self.lat_int = RectBivariateSpline(np.arange(550), np.arange(550), self.file_back["XLAT"][0, :, :])
-        self.lon_int = RectBivariateSpline(np.arange(550), np.arange(550), self.file_back["XLONG"][0, :, :])
-
-        self.mesh_lon, self.mesh_lat = np.meshgrid(np.arange(550), np.arange(550))
-
-        if not self.save_file:
-            messagebox.showerror("Error", "File path to save was not selected. Exiting...")
-            self.destroy()
-            return
+        self.mesh_lon, self.mesh_lat = np.meshgrid(np.arange(self.file_back["XLAT"].shape[1]),
+                                                   np.arange(self.file_back["XLAT"].shape[2]))
 
         self.fig, self.ax = plt.subplots(figsize=(10, 10))
         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        self.canvas.mpl_connect("button_press_event", self.on_click)
+        self.canvas.mpl_connect("motion_notify_event", self.on_mouse_move)
+        self.bind("<Down>", self.go_back)
+        self.bind("<Up>", self.go_forward)
+        self.bind("<Escape>", self.release_track)
+        self.focus_set()
 
         toolbar_frame = tk.Frame(self)
         toolbar_frame.pack(side=tk.TOP, fill=tk.X)
         self.toolbar = NavigationToolbar2Tk(self.canvas, toolbar_frame)
         self.toolbar.update()
-
-        self.canvas.mpl_connect("button_press_event", self.on_click)
-        self.canvas.mpl_connect("motion_notify_event", self.on_mouse_move)
-        self.bind("<Down>", self.go_back)
-        self.bind("<Up>", self.go_forward)
-        self.focus_set()
 
         self.create_map()
 
@@ -101,7 +95,7 @@ class MapApp(tk.Tk):
         self.geo = self.ax.contour(self.mesh_lon, self.mesh_lat, self.file_back["geopotential"][self.shot, 0, :, :],
                                    levels=50, colors="k", linewidths=0.2)
 
-        mask = self.file_edd["center"][self.shot, 0, :, :] > 0
+        mask = self.centers[self.shot, :, :] > 0
         self.curr_centers = self.ax.scatter(self.mesh_lon[mask], self.mesh_lat[mask], c="k", s=40, zorder=6)
 
         self.ax.set_title((dt.datetime(year=1979, month=1, day=1) + dt.timedelta(
@@ -119,8 +113,36 @@ class MapApp(tk.Tk):
             self.shot += 1
         self.create_map()
 
+    def release_track(self, event=None):
+        if self.prev_point:
+            self.prev_point = None
+        if self.curr_line:
+            self.curr_line.remove()
+            self.curr_line = None
+        self.canvas.draw()
+
     def custom_format_coord(self, x, y):
         return f"x = {x:.0f}, y = {y:.0f}; Lat = {self.lat_int(x, y)[0, 0]:.2f}°, Lon = {self.lon_int(x, y)[0, 0]:.2f}°"
+
+    def select_file_back(self):
+        file_path = filedialog.askopenfilename(title="Select criteria file", filetypes=[("NetCDF files", "*.nc")])
+        if file_path:
+            self.path_file_back = file_path
+            self.file_back = Dataset(self.path_file_back)
+
+    def select_file_edd(self):
+        file_path = filedialog.askopenfilename(title="Select centers file", filetypes=[("NetCDF files", "*.nc")])
+        if file_path:
+            self.path_file_edd = file_path
+            ds = Dataset(self.path_file_edd)
+            self.centers = ds["center"][:, 0, :, :]
+            ds.close()
+
+    def select_save_folder(self):
+        folder_path = filedialog.askdirectory(title="Select save folder")
+        if folder_path:
+            self.path_save_file = folder_path
+            self.load_tracks(folder_path)
 
     def on_click(self, event):
         if event.inaxes != self.ax:
@@ -157,6 +179,7 @@ class MapApp(tk.Tk):
             if cent_f:
                 cent_track = self.in_track(cent)
                 self.ask_to_save_track(cent_track)
+        self.canvas.draw()
 
     def on_mouse_move(self, event):
         if self.prev_point and event.inaxes == self.ax:
@@ -167,7 +190,7 @@ class MapApp(tk.Tk):
             self.canvas.draw()
 
     def is_center(self, x, y, c=0):
-        mask = self.file_edd["center"][self.shot + c, 0, :, :] > 0
+        mask = self.centers[self.shot + c, :, :] > 0
         centers = np.column_stack((self.mesh_lon[mask], self.mesh_lat[mask]))
         for center in centers:
             if np.isclose([x, y], center, atol=2).all():
@@ -183,10 +206,23 @@ class MapApp(tk.Tk):
     def ask_to_save_track(self, index):
         response = messagebox.askyesno("Save Track", "Do you want to save this track?")
         if response:
-            filename = self.save_file
-            self.tracks[index].save(filename, self.lat_int, self.lon_int, self.file_back["XTIME"][:])
-            messagebox.showinfo("Saving", f"Track was added into '{filename}'.")
+            for p in self.tracks[index].points:
+                self.centers[p.t, p.x, p.y] = 0
+
+            self.tracks[index].save(self.lat_int, self.lon_int, self.file_back["XTIME"][:])
+            messagebox.showinfo("Saving", f"Track was added into {self.path_save_file}{index}.csv")
             print(f"Track {index} was saved.")
+
+    def load_tracks(self, path):
+        files = sorted(glob(path + "/*.csv"))
+        for f in files:
+            df = np.loadtxt(f, delimiter=";")
+            points = [Point(d[3], d[4], d[0]) for d in df]
+            new_track = Track(f.split("/")[-1][:-4], self.ax)
+            new_track.points = points
+            self.tracks.append(new_track)
+            self.tracks[-1].draw()
+        self.canvas.draw()
 
 
 if __name__ == "__main__":
