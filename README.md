@@ -22,6 +22,12 @@ python eddyclicker.py
 
 ## Using
 
+### First start
+
+When you first start the program, you will be asked to select files with the pressure field and vortex centers, as well
+as a folder for saving files. The last opened files will be opened automatically during subsequent starts. Saved tracks
+from the folder are loaded automatically.
+
 ### Navigation
 
 The display uses grid node coordinates, and the geographic coordinates corresponding to the cursor position are
@@ -36,6 +42,10 @@ the previous ones - as circles.
 
 You can create tracks by connecting points on the map in sequence. To create a track, you must connect a circle to a
 point - this will be the first segment. Then switch to a step forward and connect the circle (the former dot) to the
-next dot. When you want to finish the track, right-click on the end point of the track (circle). The geographic
+next dot. Using the mouse wheel you can adjust the compression of the ellipse. When you want to finish the track,
+right-click on the end point of the track (circle). The geographic
 coordinates of all points of the track will be sequentially written to the specified file. After that, the built track
 will be deleted from the map.
+
+An unnecessary track point can be deleted by double-clicking on it. If you accidentally start a new segment, press Esc
+and select a new point again.
