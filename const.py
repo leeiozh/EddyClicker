@@ -1,12 +1,20 @@
 from netCDF4 import Dataset
 import numpy as np
 
-TRACKS_FOLDER = '/home/leeiozh/ocean/EddyClicker/track_folder'
-FILE_BACK = '/home/leeiozh/ocean/EddyClicker/rortex_2d_criteria_HiRes_level_12_2010-01.nc'
-FILE_EDD = '/home/leeiozh/ocean/EddyClicker/HiRes_2010-01.nc'
-FILE_SAVE = "test.txt"
+RES = 'LoRes'; PREF = '77km'
 
-FILE_LAND = "NAAD14km_hgt.nc"
+RORTEX_VARNAME = 'R2D'
+LOCAL_EXTR_VARNAME = 'local_extr_crit'
+SCALAR_VARNAME = 'geopotential'
+SCALAR_LEVELS = np.arange(40000,70000,100)
+
+
+TRACKS_FOLDER = f'track_folder'
+FILE_SCALAR = f'tmp.nc'
+FILE_RORTEX = f'tmp.nc'
+FILE_SAVE = f"test.txt"
+
+FILE_LAND = f"/storage/NAADSERVER/NAAD/{RES}/Invariants/NAAD{PREF}_hgt.nc"
 ds_land = Dataset(FILE_LAND)
 LAND = ds_land["hgt"][:, :]
 ds_land.close()
