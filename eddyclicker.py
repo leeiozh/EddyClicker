@@ -297,9 +297,9 @@ class MapApp(tk.Tk):
     def on_mouse_wheel(self, event):
         if self.prev_point and self.curr_point and self.curr_el:
             if event.button == "up" and self.k < 1. - 1e-2:
-                self.k += 1e-2
+                self.k += 1e-1
             elif event.button == "down" and self.k > 1e-2:
-                self.k -= 1e-2
+                self.k -= 1e-1
             self.curr_el.draw()
             self.canvas.draw()
 
@@ -324,7 +324,7 @@ class MapApp(tk.Tk):
                 self.centers[p.t, p.x, p.y] = 0
 
             self.tracks[index].save(self.lat_int, self.lon_int, self.file_rortex["XTIME"][:])
-            messagebox.showinfo("Saving", f"Track was added into {self.path_save_file}{index}.csv")
+            messagebox.showinfo("Saving", f"Track was added into {self.path_save_file}/{index:09d}.csv")
             self.curr_point = None
             self.prev_point = None
 

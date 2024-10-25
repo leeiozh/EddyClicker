@@ -35,7 +35,7 @@ class Ellipse:
         x = a * np.cos(PHI)
         y = a * self.k * np.sin(PHI)
         res = np.dot(np.array([[np.cos(phi), -np.sin(phi)], [np.sin(phi), np.cos(phi)]]), np.array([x, y]))
-        self.plot = self.ax.plot(self.x + res[0], self.y + res[1], c="k", lw=1)[0]
+        self.plot = self.ax.plot(self.x + res[0], self.y + res[1], c="tab:green", lw=1)[0]
 
 
 class Track:
@@ -55,13 +55,13 @@ class Track:
     def draw(self):
         if self.plot:
             self.plot.remove()
-        self.plot = self.ax.plot([p.x for p in self.points], [p.y for p in self.points], c="k", lw=1)[0]
+        self.plot = self.ax.plot([p.x for p in self.points], [p.y for p in self.points], c="tab:blue", lw=1)[0]
 
         for p in self.points:
             p.draw()
 
     def save(self, lat_int, lon_int, time_arr):
-        with open(f"{TRACKS_FOLDER}/{self.index}.csv", 'w') as f:
+        with open(f"{TRACKS_FOLDER}/{self.index:09d}.csv", 'w') as f:
             for po in self.points:
                 lat_cent, lon_cent, lat_a, lon_a = po.convert2ll(lat_int, lon_int)
                 az, _, a = geod.inv(lat_cent, lon_cent, lat_a, lon_a)
