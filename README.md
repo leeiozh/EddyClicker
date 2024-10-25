@@ -22,6 +22,14 @@ python eddyclicker.py
 
 ## Using
 
+### Data Preprocessing
+The input file should be one has to contain all necessary data:
+* 1d (time)     : XTIME as linux epoch ('XXX since 1979-01-01')
+* 2d (y,x)      : XLAT, XLONG
+* 3d (time,y,x) : Rortex field, scalar field (ex. geopotential), coordinates of Rortex extremes
+*Details will come later*
+
+
 ### First start
 
 When you first start the program, you will be asked to select files with the pressure field and vortex centers, as well
