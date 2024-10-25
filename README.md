@@ -27,6 +27,7 @@ The input file should be one has to contain all necessary data:
 * 1d (time)     : XTIME as linux epoch ('XXX since 1979-01-01')
 * 2d (y,x)      : XLAT, XLONG
 * 3d (time,y,x) : Rortex field, scalar field (ex. geopotential), coordinates of Rortex extremes
+
 *Details will come later*
 
 
