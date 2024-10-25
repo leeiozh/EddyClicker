@@ -1,5 +1,9 @@
 # Data
 *.nc
+track_folder
 
 # Logfiles
 *.log
+
+# Python trash
+__pycache__

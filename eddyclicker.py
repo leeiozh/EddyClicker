@@ -10,6 +10,7 @@ import datetime as dt
 from glob import glob
 from shutil import move
 from os.path import isfile, isdir
+from os import mkdir
 from track import *
 from const import *
 
@@ -18,35 +19,37 @@ class MapApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("EddyClicker")
-        self.path_file_scalar = FILE_SCALAR
+        # self.path_file_scalar = FILE_SCALAR
         self.path_file_rortex = FILE_RORTEX
         self.path_save_file = TRACKS_FOLDER
 
-        if not isfile(FILE_SCALAR):
-            self.select_file_scalar()
+        # if not isfile(FILE_SCALAR):
+        #     self.select_file_scalar()
 
         if not isfile(FILE_RORTEX):
             self.select_file_rortex()
 
         if not isdir(TRACKS_FOLDER):
-            self.select_save_folder()
+            # self.select_save_folder()
+            mkdir(TRACKS_FOLDER)
+
 
         toolbar_frame = tk.Frame(self)
         toolbar_frame.pack(side=tk.TOP)
 
-        btn_open_back = tk.Button(toolbar_frame, text="Open criteria file", command=self.select_file_scalar)
-        btn_open_back.pack(side=tk.LEFT, padx=5, pady=5)
+        # btn_open_back = tk.Button(toolbar_frame, text="Open criteria file", command=self.select_file_scalar)
+        # btn_open_back.pack(side=tk.LEFT, padx=5, pady=5)
 
-        btn_open_cyc = tk.Button(toolbar_frame, text="Open centers file", command=self.select_file_rortex)
+        btn_open_cyc = tk.Button(toolbar_frame, text="Open input file", command=self.select_file_rortex)
         btn_open_cyc.pack(side=tk.LEFT, padx=5, pady=5)
 
         btn_open_save_folder = tk.Button(toolbar_frame, text="Open save folder", command=self.select_save_folder)
         btn_open_save_folder.pack(side=tk.LEFT, padx=5, pady=5)
 
-        self.file_scalar = Dataset(self.path_file_scalar)
-        ds = Dataset(self.path_file_rortex)
-        self.centers = ds[LOCAL_EXTR_VARNAME][:, :, :]
-        ds.close()
+        self.file_rortex = Dataset(self.path_file_rortex)
+        # ds = Dataset(self.path_file_rortex)
+        self.centers = self.file_rortex[LOCAL_EXTR_VARNAME][:, :, :]
+        # ds.close()
 
         self.shot = 0  # current index of shot
         self.RORTEX = None  # current criteria data
@@ -62,16 +65,16 @@ class MapApp(tk.Tk):
         self.k = 1
         self.tracks = []
 
-        if len(self.file_scalar["XLAT"].shape) == 3:
-            ydim = self.file_scalar["XLAT"].shape[1]
-            xdim = self.file_scalar["XLAT"].shape[2]
-            lat_wrf = self.file_scalar["XLAT"][:, :]
-            lon_wrf = self.file_scalar["XLONG"][:, :]
-        elif len(self.file_scalar["XLAT"].shape) == 2:
-            ydim = self.file_scalar["XLAT"].shape[0]
-            xdim = self.file_scalar["XLAT"].shape[1]
-            lat_wrf = self.file_scalar["XLAT"][:, :]
-            lon_wrf = self.file_scalar["XLONG"][:, :]
+        if len(self.file_rortex["XLAT"].shape) == 3:
+            ydim = self.file_rortex["XLAT"].shape[1]
+            xdim = self.file_rortex["XLAT"].shape[2]
+            lat_wrf = self.file_rortex["XLAT"][:, :]
+            lon_wrf = self.file_rortex["XLONG"][:, :]
+        elif len(self.file_rortex["XLAT"].shape) == 2:
+            ydim = self.file_rortex["XLAT"].shape[0]
+            xdim = self.file_rortex["XLAT"].shape[1]
+            lat_wrf = self.file_rortex["XLAT"][:, :]
+            lon_wrf = self.file_rortex["XLONG"][:, :]
         else:
             exit("STOP! Wrong XLAT/XLONG dimentions")
 
@@ -122,18 +125,18 @@ class MapApp(tk.Tk):
 
         self.ax.contourf(self.mesh_lon, self.mesh_lat, LAND, colors="LightGrey")
 
-        RORTEX = self.file_scalar[RORTEX_VARNAME][self.shot, :, :]
+        RORTEX = self.file_rortex[RORTEX_VARNAME][self.shot, :, :]
         RORTEX = np.where(RORTEX <= 0, np.nan, RORTEX)
         self.RORTEX = self.ax.contourf(self.mesh_lon, self.mesh_lat, RORTEX, levels=10, cmap="gnuplot_r", alpha=0.8)
 
-        self.geo = self.ax.contour(self.mesh_lon, self.mesh_lat, self.file_scalar[SCALAR_VARNAME][self.shot, :, :],
+        self.geo = self.ax.contour(self.mesh_lon, self.mesh_lat, self.file_rortex[SCALAR_VARNAME][self.shot, :, :],
                                    levels=SCALAR_LEVELS, colors="k", linewidths=0.2)
 
         mask = self.centers[self.shot, :, :] > 0
         self.curr_centers = self.ax.scatter(self.mesh_lon[mask], self.mesh_lat[mask], c="k", zorder=6, s=40)
 
         self.ax.set_title((dt.datetime(year=1979, month=1, day=1) + dt.timedelta(
-            minutes=int(self.file_scalar["XTIME"][self.shot]))).strftime("%d.%m.%Y %H:%M"))
+            minutes=int(self.file_rortex["XTIME"][self.shot]))).strftime("%d.%m.%Y %H:%M"))
         self.ax.format_coord = self.custom_format_coord
         self.canvas.draw()
 
@@ -143,7 +146,7 @@ class MapApp(tk.Tk):
         self.create_map()
 
     def go_forward(self, event=None):
-        if self.shot < len(self.file_scalar["XTIME"][:]) - 1:
+        if self.shot < len(self.file_rortex["XTIME"][:]) - 1:
             self.shot += 1
         self.create_map()
 
@@ -171,14 +174,14 @@ class MapApp(tk.Tk):
                     fout.write(line)
         move("tmp.py", "const.py")
 
-    def select_file_scalar(self):
-        file_path = filedialog.askopenfilename(initialdir="/".join(FILE_SCALAR.split("/")[:-1]),
-                                               title="Select criteria file", filetypes=[("NetCDF files", "*.nc")])
-        if file_path:
-            self.path_file_scalar = file_path
-            self.file_scalar = Dataset(self.path_file_scalar)
-            self.create_map()
-            self.change_path(file_path, "FILE_SCALAR")
+    # def select_file_scalar(self):
+    #     file_path = filedialog.askopenfilename(initialdir="/".join(FILE_SCALAR.split("/")[:-1]),
+    #                                            title="Select criteria file", filetypes=[("NetCDF files", "*.nc")])
+    #     if file_path:
+    #         self.path_file_scalar = file_path
+    #         self.file_scalar = Dataset(self.path_file_scalar)
+    #         self.create_map()
+    #         self.change_path(file_path, "FILE_SCALAR")
 
     def select_file_rortex(self):
         file_path = filedialog.askopenfilename(initialdir="/".join(FILE_RORTEX.split("/")[:-1]),
@@ -320,7 +323,7 @@ class MapApp(tk.Tk):
             for p in self.tracks[index].points:
                 self.centers[p.t, p.x, p.y] = 0
 
-            self.tracks[index].save(self.lat_int, self.lon_int, self.file_scalar["XTIME"][:])
+            self.tracks[index].save(self.lat_int, self.lon_int, self.file_rortex["XTIME"][:])
             messagebox.showinfo("Saving", f"Track was added into {self.path_save_file}{index}.csv")
             self.curr_point = None
             self.prev_point = None
