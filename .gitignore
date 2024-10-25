@@ -1,0 +1,5 @@
+# Data
+*.nc
+
+# Logfiles
+*.log
