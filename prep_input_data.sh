@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# run `conda activate cdo ``
+# run `module rm cdo && conda activate cdo ``
+
+rm -rf *.log
 
 # DBSCAN
 echo "DBSCAN"
@@ -19,7 +21,6 @@ for i in $(ls /storage/NAADSERVER/NAAD/LoRes/PressureLevels/geopotential/2010/ge
 	echo ${filename}
 	cdo -sellevel,500 ${i} _000_${filename} &> scalar.log
 done
-
 cdo -O mergetime _000_* merge_scalar.nc &> scalar_merge.log
 rm -rf _000_*
 
