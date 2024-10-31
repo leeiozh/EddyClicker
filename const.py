@@ -10,7 +10,6 @@ SCALAR_LEVELS = np.arange(40000,70000,100)
 
 
 TRACKS_FOLDER = f'track_folder'
-FILE_SCALAR = f'tmp.nc'
 FILE_RORTEX = f'LoRes_DBSCAN_2010.nc'
 FILE_SAVE = f"test.txt"
 
