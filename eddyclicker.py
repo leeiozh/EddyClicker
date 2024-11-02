@@ -19,12 +19,12 @@ class MapApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("EddyClicker")
-        # self.path_file_scalar = FILE_SCALAR
+        # self.path_file_back = FILE_BACK
         self.path_file_rortex = FILE_RORTEX
         self.path_save_file = TRACKS_FOLDER
 
-        # if not isfile(FILE_SCALAR):
-        #     self.select_file_scalar()
+        # if not isfile(FILE_BACK):
+        #     self.select_file_back()
 
         if not isfile(FILE_RORTEX):
             self.select_file_rortex()
@@ -33,23 +33,20 @@ class MapApp(tk.Tk):
             # self.select_save_folder()
             mkdir(TRACKS_FOLDER)
 
-
         toolbar_frame = tk.Frame(self)
         toolbar_frame.pack(side=tk.TOP)
 
-        # btn_open_back = tk.Button(toolbar_frame, text="Open criteria file", command=self.select_file_scalar)
-        # btn_open_back.pack(side=tk.LEFT, padx=5, pady=5)
+        btn_open_back = tk.Button(toolbar_frame, text="Open criteria file", command=self.select_file_back)
+        btn_open_back.pack(side=tk.LEFT, padx=5, pady=5)
 
-        btn_open_cyc = tk.Button(toolbar_frame, text="Open input file", command=self.select_file_rortex)
+        btn_open_cyc = tk.Button(toolbar_frame, text="Open centers file", command=self.select_file_rortex)
         btn_open_cyc.pack(side=tk.LEFT, padx=5, pady=5)
 
         btn_open_save_folder = tk.Button(toolbar_frame, text="Open save folder", command=self.select_save_folder)
         btn_open_save_folder.pack(side=tk.LEFT, padx=5, pady=5)
 
         self.file_rortex = Dataset(self.path_file_rortex)
-        # ds = Dataset(self.path_file_rortex)
         self.centers = self.file_rortex[LOCAL_EXTR_VARNAME][:, :, :]
-        # ds.close()
 
         self.shot = 0  # current index of shot
         self.RORTEX = None  # current criteria data
@@ -133,7 +130,7 @@ class MapApp(tk.Tk):
                                    levels=SCALAR_LEVELS, colors="k", linewidths=0.2)
 
         mask = self.centers[self.shot, :, :] > 0
-        self.curr_centers = self.ax.scatter(self.mesh_lon[mask], self.mesh_lat[mask], c="k", zorder=6, s=40)
+        self.curr_centers = self.ax.scatter(self.mesh_lon[mask], self.mesh_lat[mask], c="k", s=40, zorder=6)
 
         self.ax.set_title((dt.datetime(year=1979, month=1, day=1) + dt.timedelta(
             minutes=int(self.file_rortex["XTIME"][self.shot]))).strftime("%d.%m.%Y %H:%M"))
@@ -174,14 +171,14 @@ class MapApp(tk.Tk):
                     fout.write(line)
         move("tmp.py", "const.py")
 
-    # def select_file_scalar(self):
-    #     file_path = filedialog.askopenfilename(initialdir="/".join(FILE_SCALAR.split("/")[:-1]),
-    #                                            title="Select criteria file", filetypes=[("NetCDF files", "*.nc")])
-    #     if file_path:
-    #         self.path_file_scalar = file_path
-    #         self.file_scalar = Dataset(self.path_file_scalar)
-    #         self.create_map()
-    #         self.change_path(file_path, "FILE_SCALAR")
+    def select_file_back(self):
+        file_path = filedialog.askopenfilename(initialdir="/".join(FILE_BACK.split("/")[:-1]),
+                                               title="Select criteria file", filetypes=[("NetCDF files", "*.nc")])
+        if file_path:
+            self.path_file_back = file_path
+            self.file_back = Dataset(self.path_file_back)
+            self.create_map()
+            self.change_path(file_path, "FILE_BACK")
 
     def select_file_rortex(self):
         file_path = filedialog.askopenfilename(initialdir="/".join(FILE_RORTEX.split("/")[:-1]),
@@ -297,9 +294,9 @@ class MapApp(tk.Tk):
     def on_mouse_wheel(self, event):
         if self.prev_point and self.curr_point and self.curr_el:
             if event.button == "up" and self.k < 1. - 1e-2:
-                self.k += 1e-1
+                self.k += 1e-2
             elif event.button == "down" and self.k > 1e-2:
-                self.k -= 1e-1
+                self.k -= 1e-2
             self.curr_el.draw()
             self.canvas.draw()
 
@@ -323,8 +320,8 @@ class MapApp(tk.Tk):
             for p in self.tracks[index].points:
                 self.centers[p.t, p.x, p.y] = 0
 
-            self.tracks[index].save(self.lat_int, self.lon_int, self.file_rortex["XTIME"][:])
-            messagebox.showinfo("Saving", f"Track was added into {self.path_save_file}/{index:09d}.csv")
+            self.tracks[index].save(self.lat_int, self.lon_int, self.file_back["XTIME"][:])
+            messagebox.showinfo("Saving", f"Track was added into {self.path_save_file}{index}.csv")
             self.curr_point = None
             self.prev_point = None
 

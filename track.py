@@ -35,7 +35,7 @@ class Ellipse:
         x = a * np.cos(PHI)
         y = a * self.k * np.sin(PHI)
         res = np.dot(np.array([[np.cos(phi), -np.sin(phi)], [np.sin(phi), np.cos(phi)]]), np.array([x, y]))
-        self.plot = self.ax.plot(self.x + res[0], self.y + res[1], c="tab:green", lw=1)[0]
+        self.plot = self.ax.plot(self.x + res[0], self.y + res[1], c="k", lw=1)[0]
 
 
 class Track:
@@ -55,7 +55,7 @@ class Track:
     def draw(self):
         if self.plot:
             self.plot.remove()
-        self.plot = self.ax.plot([p.x for p in self.points], [p.y for p in self.points], c="tab:blue", lw=1)[0]
+        self.plot = self.ax.plot([p.x for p in self.points], [p.y for p in self.points], c="k", lw=1)[0]
 
         for p in self.points:
             p.draw()

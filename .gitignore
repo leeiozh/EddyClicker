@@ -4,6 +4,7 @@ track_folder
 
 # Logfiles
 *.log
+*.backup
 
 # Python trash
 __pycache__
