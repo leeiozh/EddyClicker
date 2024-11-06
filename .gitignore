@@ -2,9 +2,13 @@
 *.nc
 track_folder
 
+# Backup code
+*.old
+
 # Logfiles
 *.log
 *.backup
+.DS_Store
 
 # Python trash
 __pycache__

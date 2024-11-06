@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import matplotlib
+import numpy as np
 
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
@@ -19,12 +20,12 @@ class MapApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("EddyClicker")
-        # self.path_file_back = FILE_BACK
+        # self.path_file_scalar = FILE_SCALAR
         self.path_file_rortex = FILE_RORTEX
         self.path_save_file = TRACKS_FOLDER
 
-        # if not isfile(FILE_BACK):
-        #     self.select_file_back()
+        # if not isfile(FILE_SCALAR):
+        #     self.select_file_scalar()
 
         if not isfile(FILE_RORTEX):
             self.select_file_rortex()
@@ -36,17 +37,19 @@ class MapApp(tk.Tk):
         toolbar_frame = tk.Frame(self)
         toolbar_frame.pack(side=tk.TOP)
 
-        btn_open_back = tk.Button(toolbar_frame, text="Open criteria file", command=self.select_file_back)
-        btn_open_back.pack(side=tk.LEFT, padx=5, pady=5)
+        # btn_open_back = tk.Button(toolbar_frame, text="Open criteria file", command=self.select_file_scalar)
+        # btn_open_back.pack(side=tk.LEFT, padx=5, pady=5)
 
-        btn_open_cyc = tk.Button(toolbar_frame, text="Open centers file", command=self.select_file_rortex)
+        btn_open_cyc = tk.Button(toolbar_frame, text="Open input file", command=self.select_file_rortex)
         btn_open_cyc.pack(side=tk.LEFT, padx=5, pady=5)
 
         btn_open_save_folder = tk.Button(toolbar_frame, text="Open save folder", command=self.select_save_folder)
         btn_open_save_folder.pack(side=tk.LEFT, padx=5, pady=5)
 
         self.file_rortex = Dataset(self.path_file_rortex)
+        # ds = Dataset(self.path_file_rortex)
         self.centers = self.file_rortex[LOCAL_EXTR_VARNAME][:, :, :]
+        # ds.close()
 
         self.shot = 0  # current index of shot
         self.RORTEX = None  # current criteria data
@@ -56,6 +59,9 @@ class MapApp(tk.Tk):
         self.curr_line = None
         self.prev_point = None
         self.curr_point = None
+        self.el_p1 = None
+        self.el_p2 = None
+        self.el_p3 = None
         self.prev_el = None
         self.curr_el = None
         self.sel_el = False
@@ -65,24 +71,18 @@ class MapApp(tk.Tk):
         if len(self.file_rortex["XLAT"].shape) == 3:
             ydim = self.file_rortex["XLAT"].shape[1]
             xdim = self.file_rortex["XLAT"].shape[2]
-            lat_wrf = self.file_rortex["XLAT"][:, :]
-            lon_wrf = self.file_rortex["XLONG"][:, :]
         elif len(self.file_rortex["XLAT"].shape) == 2:
             ydim = self.file_rortex["XLAT"].shape[0]
             xdim = self.file_rortex["XLAT"].shape[1]
-            lat_wrf = self.file_rortex["XLAT"][:, :]
-            lon_wrf = self.file_rortex["XLONG"][:, :]
         else:
             exit("STOP! Wrong XLAT/XLONG dimentions")
 
         self.lat_int = RectBivariateSpline(np.arange(ydim),
                                            np.arange(xdim),
-                                           lat_wrf)
+                                           self.file_rortex["XLAT"][:, :])
         self.lon_int = RectBivariateSpline(np.arange(ydim),
                                            np.arange(xdim),
-                                           lon_wrf)
-
-        del lon_wrf, lat_wrf
+                                           self.file_rortex["XLONG"][:, :])
 
         self.mesh_lon, self.mesh_lat = np.meshgrid(np.arange(ydim),
                                                    np.arange(xdim))
@@ -102,14 +102,15 @@ class MapApp(tk.Tk):
         toolbar_frame.pack(side=tk.TOP, fill=tk.X)
         self.toolbar = NavigationToolbar2Tk(self.canvas, toolbar_frame)
         self.toolbar.update()
-        self.create_map()
         if self.path_save_file:
             self.load_tracks(self.path_save_file)
+        self.create_map()
 
     def create_map(self):
         if self.RORTEX:
             for coll in self.RORTEX.collections:
                 coll.remove()
+        if self.geo:
             for coll in self.geo.collections:
                 coll.remove()
         if self.curr_centers:
@@ -124,13 +125,14 @@ class MapApp(tk.Tk):
 
         RORTEX = self.file_rortex[RORTEX_VARNAME][self.shot, :, :]
         RORTEX = np.where(RORTEX <= 0, np.nan, RORTEX)
+
         self.RORTEX = self.ax.contourf(self.mesh_lon, self.mesh_lat, RORTEX, levels=10, cmap="gnuplot_r", alpha=0.8)
 
         self.geo = self.ax.contour(self.mesh_lon, self.mesh_lat, self.file_rortex[SCALAR_VARNAME][self.shot, :, :],
                                    levels=SCALAR_LEVELS, colors="k", linewidths=0.2)
 
         mask = self.centers[self.shot, :, :] > 0
-        self.curr_centers = self.ax.scatter(self.mesh_lon[mask], self.mesh_lat[mask], c="k", s=40, zorder=6)
+        self.curr_centers = self.ax.scatter(self.mesh_lon[mask], self.mesh_lat[mask], c="k", zorder=6, s=40)
 
         self.ax.set_title((dt.datetime(year=1979, month=1, day=1) + dt.timedelta(
             minutes=int(self.file_rortex["XTIME"][self.shot]))).strftime("%d.%m.%Y %H:%M"))
@@ -171,14 +173,14 @@ class MapApp(tk.Tk):
                     fout.write(line)
         move("tmp.py", "const.py")
 
-    def select_file_back(self):
-        file_path = filedialog.askopenfilename(initialdir="/".join(FILE_BACK.split("/")[:-1]),
-                                               title="Select criteria file", filetypes=[("NetCDF files", "*.nc")])
-        if file_path:
-            self.path_file_back = file_path
-            self.file_back = Dataset(self.path_file_back)
-            self.create_map()
-            self.change_path(file_path, "FILE_BACK")
+    # def select_file_scalar(self):
+    #     file_path = filedialog.askopenfilename(initialdir="/".join(FILE_SCALAR.split("/")[:-1]),
+    #                                            title="Select criteria file", filetypes=[("NetCDF files", "*.nc")])
+    #     if file_path:
+    #         self.path_file_scalar = file_path
+    #         self.file_scalar = Dataset(self.path_file_scalar)
+    #         self.create_map()
+    #         self.change_path(file_path, "FILE_SCALAR")
 
     def select_file_rortex(self):
         file_path = filedialog.askopenfilename(initialdir="/".join(FILE_RORTEX.split("/")[:-1]),
@@ -222,23 +224,38 @@ class MapApp(tk.Tk):
 
                 else:  # have two points
                     cent_track = self.in_track(self.prev_point)
-                    if cent_track == -1:
-                        print(f"created {len(self.tracks)} track")
-                        new_track = Track(len(self.tracks), self.ax)
-                        new_track.points.append(Ellipse(self.prev_point.t, self.prev_point.x, self.prev_point.y,
-                                                        self.prev_point.x, self.prev_point.y, self.k, self.ax))
-                        new_track.points.append(Ellipse(self.curr_point.t, self.curr_point.x, self.curr_point.y,
-                                                        event.xdata, event.ydata, self.k, self.ax))
-                        self.tracks.append(new_track)
-                        self.tracks[-1].draw()
-                    else:
-                        print(f"appended {len(self.tracks[cent_track].points)} point to {cent_track} track")
-                        self.tracks[cent_track].append(Ellipse(self.curr_point.t, self.curr_point.x, self.curr_point.y,
-                                                               event.xdata, event.ydata, self.k, self.ax))
-                        self.tracks[-1].draw()
 
-                    self.prev_point = None
-                    self.curr_point = None
+                    if self.el_p1 is None:
+                        self.el_p1 = np.array([event.xdata, event.ydata])
+                    elif self.el_p2 is None:
+                        self.el_p2 = np.array([event.xdata, event.ydata])
+                    elif self.el_p3 is None:
+                        self.el_p3 = np.array([event.xdata, event.ydata])
+                        # else:
+                        ell = Ellipse(self.curr_point.t, self.curr_point.x, self.curr_point.y,
+                                      self.el_p1, self.el_p2, self.el_p3, self.ax)
+
+                        if cent_track == -1:
+                            print(f"created {len(self.tracks)} track")
+                            new_track = Track(len(self.tracks), self.ax)
+                            new_track.points.append(Ellipse(self.prev_point.t, self.prev_point.x, self.prev_point.y,
+                                                            np.array([self.prev_point.x, self.prev_point.y]),
+                                                            np.array([self.prev_point.x, self.prev_point.y]),
+                                                            np.array([self.prev_point.x, self.prev_point.y]),
+                                                            self.ax))
+                            new_track.points.append(ell)
+                            self.tracks.append(new_track)
+                            self.tracks[-1].draw()
+                        else:
+                            print(f"appended {len(self.tracks[cent_track].points)} point to {cent_track} track")
+                            self.tracks[cent_track].append(ell)
+                            self.tracks[-1].draw()
+
+                        self.prev_point = None
+                        self.curr_point = None
+                        self.el_p1 = None
+                        self.el_p2 = None
+                        self.el_p3 = None
 
         elif event.button == 3 and self.prev_point is None:
             cent_f, cent = self.is_center(event.xdata, event.ydata, -1)
@@ -257,7 +274,7 @@ class MapApp(tk.Tk):
                 if cent_track != -1:
                     point_index = -1
                     for i, p in enumerate(self.tracks[cent_track].points):
-                        if p.x == cent.x and p.y == cent.y:
+                        if p.x0 == cent.x and p.y0 == cent.y:
                             point_index = i
                             break
                     if point_index != -1:
@@ -271,20 +288,20 @@ class MapApp(tk.Tk):
 
     def on_mouse_move(self, event):
 
-        if self.prev_point and self.curr_point and event.inaxes == self.ax:
-            if self.curr_el:
-                if self.curr_el.plot:
-                    self.curr_el.plot.remove()
-                    self.curr_el = None
-            self.curr_el = Ellipse(self.curr_point.t, self.curr_point.x, self.curr_point.y,
-                                   event.xdata, event.ydata, self.k, self.ax)
-            self.curr_el.draw()
-            if self.curr_line:
-                self.curr_line.remove()
-            self.curr_line = \
-                self.ax.plot([self.curr_point.x, event.xdata], [self.curr_point.y, event.ydata], c="k", lw=1)[0]
+        # if self.prev_point and self.curr_point and event.inaxes == self.ax:
+        #     # if self.curr_el:
+        #     #     if self.curr_el.plot:
+        #     #         self.curr_el.plot.remove()
+        #     #         self.curr_el = None
+        #     # self.curr_el = Ellipse(self.curr_point.t, self.curr_point.x, self.curr_point.y,
+        #     #                        event.xdata, event.ydata, self.k, self.ax)
+        #     # self.curr_el.draw()
+        #     if self.curr_line:
+        #         self.curr_line.remove()
+        #     self.curr_line = \
+        #         self.ax.plot([self.curr_point.x, event.xdata], [self.curr_point.y, event.ydata], c="k", lw=1)[0]
 
-        elif self.prev_point and event.inaxes == self.ax:
+        if self.prev_point and self.curr_point is None and event.inaxes == self.ax:
             if self.curr_line:
                 self.curr_line.remove()
             self.curr_line = \
@@ -294,11 +311,11 @@ class MapApp(tk.Tk):
     def on_mouse_wheel(self, event):
         if self.prev_point and self.curr_point and self.curr_el:
             if event.button == "up" and self.k < 1. - 1e-2:
-                self.k += 1e-2
+                self.k += 5e-2
             elif event.button == "down" and self.k > 1e-2:
-                self.k -= 1e-2
+                self.k -= 5e-2
             self.curr_el.draw()
-            self.canvas.draw()
+            self.canvas.draw_idle()
 
     def is_center(self, x, y, c=0):
         mask = self.centers[self.shot + c, :, :] > 0
@@ -310,7 +327,7 @@ class MapApp(tk.Tk):
 
     def in_track(self, point):
         for track in self.tracks:
-            if track.points[-1].x == point.x and track.points[-1].y == point.y:
+            if track.points[-1].x0 == point.x and track.points[-1].y0 == point.y:
                 return track.index
         return -1
 
@@ -318,10 +335,10 @@ class MapApp(tk.Tk):
         response = messagebox.askyesno("Save Track", "Do you want to save this track?")
         if response:
             for p in self.tracks[index].points:
-                self.centers[p.t, p.x, p.y] = 0
+                self.centers[p.t, p.x0, p.y0] = 0
 
-            self.tracks[index].save(self.lat_int, self.lon_int, self.file_back["XTIME"][:])
-            messagebox.showinfo("Saving", f"Track was added into {self.path_save_file}{index}.csv")
+            self.tracks[index].save(self.lat_int, self.lon_int, self.file_rortex["XTIME"][:])
+            messagebox.showinfo("Saving", f"Track was added into {self.path_save_file}/{index:09d}.csv")
             self.curr_point = None
             self.prev_point = None
 
@@ -331,7 +348,9 @@ class MapApp(tk.Tk):
             if self.curr_el:
                 if self.curr_el.plot:
                     self.curr_el.plot.remove()
-                    self.curr_el = None
+                if self.curr_el.points:
+                    self.curr_el.points.remove()
+                self.curr_el = None
 
             print(f"Track {index} was saved.")
 
@@ -339,11 +358,19 @@ class MapApp(tk.Tk):
         files = sorted(glob(path + "/*.csv"))
         for f in files:
             df = np.loadtxt(f, delimiter=";")
-            ells = [Ellipse(d[0], d[6], d[7], d[8], d[9], d[10], self.ax) for d in df]
-            new_track = Track(f.split("/")[-1][:-4], self.ax)
-            new_track.points = ells
-            self.tracks.append(new_track)
-            self.tracks[-1].draw()
+            ind = df[:, 1:4].astype("int")
+            self.centers[ind[:, 0], ind[:, 1], ind[:, 2]] = np.nan
+
+            # print(self.centers[0])
+            # mask = np.isin(self.centers, df[:, 1:4])
+            # print(self.centers[mask])
+            # self.centers[mask] = np.nan
+            # ells = [Ellipse(d[0], d[1], d[2], np.array([d[3], d[4]]), np.array([d[5], d[6]]), np.array([d[7], d[8]]),
+            #                self.ax) for d in df]
+            # new_track = Track(f.split("/")[-1][:-4], self.ax)
+            # new_track.points = ells
+            # self.tracks.append(new_track)
+            # self.tracks[-1].draw()
         self.canvas.draw()
 
 

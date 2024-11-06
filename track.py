@@ -10,32 +10,53 @@ class Point:
 
 
 class Ellipse:
-    def __init__(self, t, x, y, x_a, y_a, k, ax):
+    def __init__(self, t, x0, y0, p1, p2, p3, ax):
         self.t = t
-        self.x = x
-        self.y = y
-        self.x_a = x_a
-        self.y_a = y_a
-        self.k = k
-
+        self.x0 = x0
+        self.y0 = y0
+        self.p1 = p1
+        self.p2 = p2
+        self.p3 = p3
+        self.center = (self.p1 + self.p2) / 2
+        self.a = np.linalg.norm(self.p1 - self.p2) / 2
+        self.b, self.angle = self.calculate_minor_axis_and_angle()
         self.ax = ax
         self.plot = None
+        self.points = None
+
+    def calculate_minor_axis_and_angle(self):
+        major_axis_vector = self.p2 - self.p1
+        angle = np.arctan2(major_axis_vector[1], major_axis_vector[0])
+
+        rotation_matrix = np.array([[np.cos(-angle), -np.sin(-angle)],
+                                    [np.sin(-angle), np.cos(-angle)]])
+        rotated_p3 = rotation_matrix @ (self.p3 - self.center)
+        b = np.abs(rotated_p3[1])
+
+        return b, angle
 
     def convert2ll(self, lat_int, lon_int):
-        return lat_int(self.x, self.y)[0][0], lon_int(self.x, self.y)[0][0], \
-            lat_int(self.x_a, self.y_a)[0][0], lon_int(self.x_a, self.y_a)[0][0]
+        return [lat_int(self.x0, self.y0)[0][0], lon_int(self.x0, self.y0)[0][0],
+                lat_int(self.p1[0], self.p1[1])[0][0], lon_int(self.p1[0], self.p1[1])[0][0],
+                lat_int(self.p2[0], self.p2[1])[0][0], lon_int(self.p2[0], self.p2[1])[0][0],
+                lat_int(self.p3[0], self.p3[1])[0][0], lon_int(self.p3[0], self.p3[1])[0][0]]
 
     def draw(self):
         if self.plot:
             self.plot.remove()
-        vec_x = self.x_a - self.x
-        vec_y = self.y_a - self.y
-        a = np.linalg.norm([vec_x, vec_y])
-        phi = np.arctan2(vec_y, vec_x)
-        x = a * np.cos(PHI)
-        y = a * self.k * np.sin(PHI)
-        res = np.dot(np.array([[np.cos(phi), -np.sin(phi)], [np.sin(phi), np.cos(phi)]]), np.array([x, y]))
-        self.plot = self.ax.plot(self.x + res[0], self.y + res[1], c="k", lw=1)[0]
+        theta = np.linspace(0, 2 * np.pi, 100)
+        x = self.a * np.cos(theta)
+        y = self.b * np.sin(theta)
+        R = np.array([[np.cos(self.angle), -np.sin(self.angle)],
+                      [np.sin(self.angle), np.cos(self.angle)]])
+        ellipse_points = R @ np.array([x, y])
+
+        self.points = self.ax.scatter([self.p1[0], self.p2[0], self.p3[0]],
+                                      [self.p1[1], self.p2[1], self.p3[1]],
+                                      color="blue")
+        self.plot = self.ax.plot(ellipse_points[0, :] + self.center[0],
+                                 ellipse_points[1, :] + self.center[1],
+                                 c="blue", lw=1)[0]
 
 
 class Track:
@@ -55,7 +76,7 @@ class Track:
     def draw(self):
         if self.plot:
             self.plot.remove()
-        self.plot = self.ax.plot([p.x for p in self.points], [p.y for p in self.points], c="k", lw=1)[0]
+        self.plot = self.ax.plot([p.x0 for p in self.points], [p.y0 for p in self.points], c="k", lw=1)[0]
 
         for p in self.points:
             p.draw()
@@ -63,12 +84,12 @@ class Track:
     def save(self, lat_int, lon_int, time_arr):
         with open(f"{TRACKS_FOLDER}/{self.index:09d}.csv", 'w') as f:
             for po in self.points:
-                lat_cent, lon_cent, lat_a, lon_a = po.convert2ll(lat_int, lon_int)
-                az, _, a = geod.inv(lat_cent, lon_cent, lat_a, lon_a)
-                a /= 1000  # in km
-                b = a * po.k
+                # el_points = po.convert2ll(lat_int, lon_int)
+                el_points = [po.x0, po.y0, po.p1[0], po.p1[1], po.p2[0], po.p2[1], po.p3[0], po.p3[1]]
 
-                f.write(f"{time_arr[po.t]:.0f};{lat_cent};{lon_cent};{a};{b};{az};"
-                        f"{po.x};{po.y};{po.x_a};{po.y_a};{po.k}\n")
+                f.write(f"{time_arr[po.t]:.0f};{po.t};")
+                for el in el_points[:-1]:
+                    f.write(f"{el};")
+                f.write(f"{el_points[-1]}\n")
                 po.plot.remove()
             self.plot.remove()
