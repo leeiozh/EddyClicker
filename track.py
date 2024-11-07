@@ -51,9 +51,9 @@ class Ellipse:
                       [np.sin(self.angle), np.cos(self.angle)]])
         ellipse_points = R @ np.array([x, y])
 
-        self.points = self.ax.scatter([self.p1[0], self.p2[0], self.p3[0]],
-                                      [self.p1[1], self.p2[1], self.p3[1]],
-                                      color="blue")
+        # self.points = self.ax.scatter([self.p1[0], self.p2[0], self.p3[0]],
+        #                               [self.p1[1], self.p2[1], self.p3[1]],
+        #                               color="blue")
         self.plot = self.ax.plot(ellipse_points[0, :] + self.center[0],
                                  ellipse_points[1, :] + self.center[1],
                                  c="blue", lw=1)[0]

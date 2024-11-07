@@ -1,3 +1,5 @@
+# kill -9 $(ps ax | grep eddy | cut -f1 -d' ' | head -1)
+
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import matplotlib
@@ -31,7 +33,6 @@ class MapApp(tk.Tk):
             self.select_file_rortex()
 
         if not isdir(TRACKS_FOLDER):
-            # self.select_save_folder()
             mkdir(TRACKS_FOLDER)
 
         toolbar_frame = tk.Frame(self)
@@ -40,11 +41,11 @@ class MapApp(tk.Tk):
         # btn_open_back = tk.Button(toolbar_frame, text="Open criteria file", command=self.select_file_scalar)
         # btn_open_back.pack(side=tk.LEFT, padx=5, pady=5)
 
-        btn_open_cyc = tk.Button(toolbar_frame, text="Open input file", command=self.select_file_rortex)
-        btn_open_cyc.pack(side=tk.LEFT, padx=5, pady=5)
+        # btn_open_cyc = tk.Button(toolbar_frame, text="Open input file", command=self.select_file_rortex)
+        # btn_open_cyc.pack(side=tk.LEFT, padx=5, pady=5)
 
-        btn_open_save_folder = tk.Button(toolbar_frame, text="Open save folder", command=self.select_save_folder)
-        btn_open_save_folder.pack(side=tk.LEFT, padx=5, pady=5)
+        # btn_open_save_folder = tk.Button(toolbar_frame, text="Open save folder", command=self.select_save_folder)
+        # btn_open_save_folder.pack(side=tk.LEFT, padx=5, pady=5)
 
         self.file_rortex = Dataset(self.path_file_rortex)
         # ds = Dataset(self.path_file_rortex)
@@ -54,6 +55,7 @@ class MapApp(tk.Tk):
         self.shot = 0  # current index of shot
         self.RORTEX = None  # current criteria data
         self.geo = None  # current geopotential data
+        self.geo_fine = None  # current geopotential data (for zoom)
         self.curr_centers = None  # current position of centers
         self.prev_centers = None  # previous position of centers
         self.curr_line = None
@@ -87,7 +89,7 @@ class MapApp(tk.Tk):
         self.mesh_lon, self.mesh_lat = np.meshgrid(np.arange(ydim),
                                                    np.arange(xdim))
 
-        self.fig, self.ax = plt.subplots(figsize=(10, 10))
+        self.fig, self.ax = plt.subplots(figsize=(13, 13))
         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
         self.canvas.mpl_connect("button_press_event", self.on_click)
@@ -113,6 +115,9 @@ class MapApp(tk.Tk):
         if self.geo:
             for coll in self.geo.collections:
                 coll.remove()
+        if self.geo_fine:
+            for coll in self.geo_fine.collections:
+                coll.remove()
         if self.curr_centers:
             if self.prev_centers:
                 self.prev_centers.remove()
@@ -128,6 +133,8 @@ class MapApp(tk.Tk):
 
         self.RORTEX = self.ax.contourf(self.mesh_lon, self.mesh_lat, RORTEX, levels=10, cmap="gnuplot_r", alpha=0.8)
 
+        self.geo_fine = self.ax.contour(self.mesh_lon, self.mesh_lat, self.file_rortex[SCALAR_VARNAME][self.shot, :, :],
+                                   levels=SCALAR_LEVELS_FINE, colors="k", alpha=0.8, linestyles=":", linewidths=0.1)
         self.geo = self.ax.contour(self.mesh_lon, self.mesh_lat, self.file_rortex[SCALAR_VARNAME][self.shot, :, :],
                                    levels=SCALAR_LEVELS, colors="k", linewidths=0.2)
 
