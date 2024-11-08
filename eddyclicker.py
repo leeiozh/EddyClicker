@@ -89,13 +89,13 @@ class MapApp(tk.Tk):
         self.mesh_lon, self.mesh_lat = np.meshgrid(np.arange(ydim),
                                                    np.arange(xdim))
 
-        self.fig, self.ax = plt.subplots(figsize=(13, 13))
+        self.fig, self.ax = plt.subplots(figsize=(10, 10))
         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
         self.canvas.mpl_connect("button_press_event", self.on_click)
         self.canvas.mpl_connect("button_press_event", self.on_double_click)
         self.canvas.mpl_connect("motion_notify_event", self.on_mouse_move)
-        self.canvas.mpl_connect("scroll_event", self.on_mouse_wheel)
+        # self.canvas.mpl_connect("scroll_event", self.on_mouse_wheel)
         self.bind("<Down>", self.go_back)
         self.bind("<Up>", self.go_forward)
         self.bind("<Escape>", self.release_track)
@@ -133,10 +133,10 @@ class MapApp(tk.Tk):
 
         self.RORTEX = self.ax.contourf(self.mesh_lon, self.mesh_lat, RORTEX, levels=10, cmap="gnuplot_r", alpha=0.8)
 
-        self.geo_fine = self.ax.contour(self.mesh_lon, self.mesh_lat, self.file_rortex[SCALAR_VARNAME][self.shot, :, :],
-                                   levels=SCALAR_LEVELS_FINE, colors="k", alpha=0.8, linestyles=":", linewidths=0.1)
+        # self.geo_fine = self.ax.contour(self.mesh_lon, self.mesh_lat, self.file_rortex[SCALAR_VARNAME][self.shot, :, :],
+        #                            levels=SCALAR_LEVELS_FINE, colors="k", alpha=0.8, linestyles=":", linewidths=0.1)
         self.geo = self.ax.contour(self.mesh_lon, self.mesh_lat, self.file_rortex[SCALAR_VARNAME][self.shot, :, :],
-                                   levels=SCALAR_LEVELS, colors="k", linewidths=0.2)
+                                   levels=SCALAR_LEVELS, alpha=0.7, colors="k", linewidths=0.2)
 
         mask = self.centers[self.shot, :, :] > 0
         self.curr_centers = self.ax.scatter(self.mesh_lon[mask], self.mesh_lat[mask], c="k", zorder=6, s=40)
@@ -315,14 +315,14 @@ class MapApp(tk.Tk):
                 self.ax.plot([self.prev_point.x, event.xdata], [self.prev_point.y, event.ydata], c="k", lw=1)[0]
         self.canvas.draw_idle()
 
-    def on_mouse_wheel(self, event):
-        if self.prev_point and self.curr_point and self.curr_el:
-            if event.button == "up" and self.k < 1. - 1e-2:
-                self.k += 5e-2
-            elif event.button == "down" and self.k > 1e-2:
-                self.k -= 5e-2
-            self.curr_el.draw()
-            self.canvas.draw_idle()
+    # def on_mouse_wheel(self, event):
+    #     if self.prev_point and self.curr_point and self.curr_el:
+    #         if event.button == "up" and self.k < 1. - 1e-2:
+    #             self.k += 5e-2
+    #         elif event.button == "down" and self.k > 1e-2:
+    #             self.k -= 5e-2
+    #         self.curr_el.draw()
+    #         self.canvas.draw_idle()
 
     def is_center(self, x, y, c=0):
         mask = self.centers[self.shot + c, :, :] > 0
