@@ -1,5 +1,20 @@
-import numpy as np
 from const import *
+
+
+class DrawPoint:
+    def __init__(self, x, y, ax):
+        self.x = x
+        self.y = y
+        self.ax = ax
+        self.scat = None
+
+    def draw(self):
+        self.scat = self.ax.scatter(self.x, self.y, c="b")
+
+    def clean(self):
+        if self.scat:
+            self.scat.remove()
+            self.scat = None
 
 
 class Point:
@@ -14,9 +29,14 @@ class Ellipse:
         self.t = t
         self.x0 = x0
         self.y0 = y0
-        self.p1 = p1
-        self.p2 = p2
-        self.p3 = p3
+        if isinstance(p1, DrawPoint):
+            self.p1 = np.array([p1.x, p1.y])
+            self.p2 = np.array([p2.x, p2.y])
+            self.p3 = np.array([p3.x, p3.y])
+        else:
+            self.p1 = p1
+            self.p2 = p2
+            self.p3 = p3
         self.center = (self.p1 + self.p2) / 2
         self.a = np.linalg.norm(self.p1 - self.p2) / 2
         self.b, self.angle = self.calculate_minor_axis_and_angle()
@@ -44,6 +64,8 @@ class Ellipse:
     def draw(self):
         if self.plot:
             self.plot.remove()
+        if self.points:
+            self.points.remove()
         theta = np.linspace(0, 2 * np.pi, 100)
         x = self.a * np.cos(theta)
         y = self.b * np.sin(theta)
@@ -76,20 +98,38 @@ class Track:
     def draw(self):
         if self.plot:
             self.plot.remove()
+            self.plot = None
         self.plot = self.ax.plot([p.x0 for p in self.points], [p.y0 for p in self.points], c="k", lw=1)[0]
 
-        for p in self.points:
-            p.draw()
+        for p in self.points[:-1]:
+            try:
+                if p.plot and p.plot in self.ax.lines:
+                    p.plot.remove()
+                if p.points and p.points in self.ax.collections:
+                    p.points.remove()
+            except ValueError:
+                pass
+        self.points[-1].draw()
 
-    def save(self, lat_int, lon_int, time_arr):
+    def save(self, time_arr):
         with open(f"{TRACKS_FOLDER}/{self.index:09d}.csv", 'w') as f:
             for po in self.points:
-                # el_points = po.convert2ll(lat_int, lon_int)
                 el_points = [po.x0, po.y0, po.p1[0], po.p1[1], po.p2[0], po.p2[1], po.p3[0], po.p3[1]]
 
                 f.write(f"{time_arr[po.t]:.0f};{po.t};")
                 for el in el_points[:-1]:
                     f.write(f"{el};")
                 f.write(f"{el_points[-1]}\n")
-                po.plot.remove()
-            self.plot.remove()
+                try:
+                    if po.plot and po.plot in self.ax.lines:
+                        po.plot.remove()
+                except:
+                    pass
+            try:
+                if self.plot and self.plot in self.ax.lines:
+                    self.plot.remove()
+                for p in self.points:
+                    if p and p in self.ax.collections:
+                        p.remove()
+            except:
+                pass

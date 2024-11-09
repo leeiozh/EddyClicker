@@ -9,10 +9,11 @@ SCALAR_VARNAME = 'geopotential'
 SCALAR_LEVELS = np.arange(40000, 70000, 50)
 SCALAR_LEVELS_FINE = np.arange(40000, 70000, 10)
 
-
 TRACKS_FOLDER = 'track_folder'
-FILE_RORTEX = 'LoRes_DBSCAN_2010.nc'
+FILE_RORTEX = 'm09.nc' # LoRes_DBSCAN_2010.nc
 FILE_SAVE = f"test.txt"
+
+# first_time = True
 
 # FILE_LAND = f"/storage/NAADSERVER/NAAD/{RES}/Invariants/NAAD{PREF}_hgt.nc"
 FILE_LAND = "NAAD77km_hgt.nc"
@@ -20,6 +21,8 @@ ds_land = Dataset(FILE_LAND)
 LAND = ds_land["hgt"][:, :]
 ds_land.close()
 LAND = np.where(LAND > 0, 0, np.nan)
+
+TEST_TRACK_SRC = "./"
 
 from pyproj import Geod
 
