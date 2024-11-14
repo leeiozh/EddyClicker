@@ -49,12 +49,6 @@ the previous ones - as circles.
 
 ### Tracking
 
-You can create tracks by connecting points on the map in sequence. To create a track, you must connect a circle to a
-point - this will be the first segment. Then switch to a step forward and connect the circle (the former dot) to the
-next dot. Using the mouse wheel you can adjust the compression of the ellipse. When you want to finish the track,
-right-click on the end point of the track (circle). The geographic
-coordinates of all points of the track will be sequentially written to the specified file. After that, the built track
-will be deleted from the map.
+You can create tracks by connecting points on the map in sequence. To create a track, you must connect a circle to a point - this will be the first segment. Then you need to make an ellipse around the structure, it can be done by 3 right-clicks. The first two clicks indicate the major axis, the third click would be the point at the minor axis. When you want to finish the track, right-click on the end point of the track (circle). The geographic coordinates of all points of the track will be sequentially written to the specified file in the `TRACKS_FOLDER` folder. After that, the built track will be deleted from the map.
 
-An unnecessary track point can be deleted by double-clicking on it. If you accidentally start a new segment, press Esc
-and select a new point again.
+An unnecessary track point can be deleted by double-clicking on it. If you accidentally start a new segment, press Esc and select a new point again.
