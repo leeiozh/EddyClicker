@@ -1,3 +1,6 @@
+import pandas as pd
+import xarray as xr # conda install -c conda-forge xarray dask netCDF4 bottleneck
+
 from const import *
 
 
@@ -111,25 +114,57 @@ class Track:
                 pass
         self.points[-1].draw()
 
-    def save(self, time_arr):
-        with open(f"{TRACKS_FOLDER}/{self.index:09d}.csv", 'w') as f:
-            for po in self.points:
-                el_points = [po.x0, po.y0, po.p1[0], po.p1[1], po.p2[0], po.p2[1], po.p3[0], po.p3[1]]
+    def save(self):
+        filename = f"{TRACKS_FOLDER}/{self.index:09d}.csv"
 
-                f.write(f"{time_arr[po.t]:.0f};{po.t};")
-                for el in el_points[:-1]:
-                    f.write(f"{el};")
-                f.write(f"{el_points[-1]}\n")
-                try:
-                    if po.plot and po.plot in self.ax.lines:
-                        po.plot.remove()
-                except:
-                    pass
+        ptt_ind = []
+        pit_ind = []
+        pxc_ind = []
+        pyc_ind = []
+        px1_ind = []
+        py1_ind = []
+        px2_ind = []
+        py2_ind = []
+        px3_ind = []
+        py3_ind = []
+
+        with xr.open_dataset(FILE_RORTEX) as ds:
+            times = ds['XTIME']
+
+        for po in self.points:
+
+            ptt_ind.append(times[po.t].values)
+            pit_ind.append(po.t)
+            pxc_ind.append(po.x0)
+            pyc_ind.append(po.y0)
+            px1_ind.append(po.p1[0])
+            py1_ind.append(po.p1[1])
+            px2_ind.append(po.p2[0])
+            py2_ind.append(po.p2[1])
+            px3_ind.append(po.p3[0])
+            py3_ind.append(po.p3[1])
+
+
             try:
-                if self.plot and self.plot in self.ax.lines:
-                    self.plot.remove()
-                for p in self.points:
-                    if p and p in self.ax.collections:
-                        p.remove()
+                if po.plot and po.plot in self.ax.lines:
+                    po.plot.remove()
             except:
                 pass
+
+        track_data = {  'time':ptt_ind, 'time_ind':pit_ind,
+                        'pxc_ind':pxc_ind, 'pyc_ind':pyc_ind,
+                        'px1_ind':px1_ind, 'py1_ind':py1_ind,
+                        'px2_ind':px2_ind, 'py2_ind':py2_ind,
+                        'px3_ind':px3_ind, 'py3_ind':py3_ind     }
+        df = pd.DataFrame(track_data)
+        df.to_csv(filename)
+        print(df)
+
+        try:
+            if self.plot and self.plot in self.ax.lines:
+                self.plot.remove()
+            for p in self.points:
+                if p and p in self.ax.collections:
+                    p.remove()
+        except:
+            pass
