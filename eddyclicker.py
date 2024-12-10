@@ -18,12 +18,6 @@ from const import *
 # kill -9 $(ps ax | grep eddy | cut -f1 -d' ' | head -1)
 
 
-def remove_collections(collection):
-    if collection:
-        for coll in collection.collections:
-            coll.remove()
-
-
 def show_instructions():
     instructions = (
         "Welcome to EddyClicker!\n\n"
@@ -44,11 +38,16 @@ class MapApp(tk.Tk):
         super().__init__()
         self.title("EddyClicker")
 
-        # Set window size explicitly
-        self.geometry("1000x1000")
+        screen_height = self.winfo_screenheight()
+        window_width = int(screen_height * WIN_SCALE)
+        x_offset = 0
+        y_offset = 0
+        self.geometry(f"{window_width}x{screen_height}+{x_offset}+{y_offset}")
+        self.resizable(False, False)
+        # self.geometry("1000x1000")
 
-        # if first_time:
-        #     show_instructions()
+        if first_time:
+            show_instructions()
 
         # Create main container
         container = tk.Frame(self)
@@ -81,8 +80,7 @@ class MapApp(tk.Tk):
 
         self.shot = 0
         self.rortex = None
-        self.geo = None
-        self.geo_fine = None
+        self.scalar = None
         self.curr_centers = None
         self.prev_centers = None
         self.curr_line = None
@@ -106,15 +104,9 @@ class MapApp(tk.Tk):
         else:
             exit("STOP! Wrong XLAT/XLONG dimentions")
 
-        self.lat_int = RectBivariateSpline(np.arange(ydim),
-                                           np.arange(xdim),
-                                           self.file_rortex["XLAT"][:, :])
-        self.lon_int = RectBivariateSpline(np.arange(ydim),
-                                           np.arange(xdim),
-                                           self.file_rortex["XLONG"][:, :])
-
-        self.mesh_lon, self.mesh_lat = np.meshgrid(np.arange(ydim),
-                                                   np.arange(xdim))
+        self.lat_int = RectBivariateSpline(np.arange(ydim), np.arange(xdim), self.file_rortex["XLAT"][:, :])
+        self.lon_int = RectBivariateSpline(np.arange(ydim), np.arange(xdim), self.file_rortex["XLONG"][:, :])
+        self.mesh_lon, self.mesh_lat = np.meshgrid(np.arange(ydim), np.arange(xdim))
 
         # Create figure and canvas
         self.fig = Figure(figsize=(8, 8), dpi=100)
@@ -144,34 +136,31 @@ class MapApp(tk.Tk):
     def create_map(self):
 
         remove_collections(self.rortex)
-        remove_collections(self.geo)
-        remove_collections(self.geo_fine)
+        remove_collections(self.scalar)
 
         if self.curr_centers:
             if self.prev_centers:
                 self.prev_centers.remove()
             self.prev_centers = self.curr_centers.get_offsets()
-            self.prev_centers = self.ax.scatter(self.prev_centers[:, 0], self.prev_centers[:, 1], facecolor="None",
-                                                edgecolor="k", zorder=5, s=20)
+            self.prev_centers = self.ax.scatter(self.prev_centers[:, 0], self.prev_centers[:, 1], c="k", zorder=5,
+                                                s=30)
             self.curr_centers.remove()
 
         self.ax.contourf(self.mesh_lon, self.mesh_lat, LAND, colors="LightGrey")
 
-        RORTEX = self.file_rortex[RORTEX_VARNAME][self.shot, :, :]
-        RORTEX = np.where(RORTEX <= 0, np.nan, RORTEX)
+        rortex = self.file_rortex[RORTEX_VARNAME][self.shot, :, :]
+        rortex = np.where(rortex <= 0, np.nan, rortex)
+        self.rortex = self.ax.contourf(self.mesh_lon, self.mesh_lat, rortex, levels=10, cmap="gnuplot_r", alpha=0.8)
 
-        self.rortex = self.ax.contourf(self.mesh_lon, self.mesh_lat, RORTEX, levels=10, cmap="gnuplot_r", alpha=0.8)
-
-        # self.geo_fine = self.ax.contour(self.mesh_lon, self.mesh_lat, self.file_rortex[SCALAR_VARNAME][self.shot, :, :],
-        #                            levels=SCALAR_LEVELS_FINE, colors="k", alpha=0.8, linestyles=":", linewidths=0.1)
-        self.geo = self.ax.contour(self.mesh_lon, self.mesh_lat, self.file_rortex[SCALAR_VARNAME][self.shot, :, :],
-                                   levels=SCALAR_LEVELS, alpha=0.7, colors="k", linewidths=0.2)
+        self.scalar = self.ax.contour(self.mesh_lon, self.mesh_lat, self.file_rortex[SCALAR_VARNAME][self.shot, :, :],
+                                      levels=SCALAR_LEVELS, alpha=0.7, colors="k", linewidths=0.2)
 
         mask = self.centers[self.shot, :, :] > 0
-        self.curr_centers = self.ax.scatter(self.mesh_lon[mask], self.mesh_lat[mask], c="k", zorder=6, s=40)
+        self.curr_centers = self.ax.scatter(self.mesh_lon[mask], self.mesh_lat[mask], facecolor="None", edgecolor="k",
+                                            zorder=6, s=100, lw=2)
 
         self.ax.set_title((dt.datetime(year=1979, month=1, day=1) + dt.timedelta(
-            minutes=int(self.file_rortex["XTIME"][self.shot]))).strftime("%d.%m.%Y %H:%M"))
+            minutes=int(self.file_rortex["XTIME"][self.shot]))).strftime("%d.%m.%Y %H:%M"), fontsize=20)
         self.ax.format_coord = self.custom_format_coord
         self.canvas.draw()
 
@@ -354,23 +343,33 @@ class MapApp(tk.Tk):
 
     def in_track(self, point):
         for track in self.tracks:
-            if track != 0:
+            if track != 0 and track is not None:
                 if track.points[-1].x0 == point.x and track.points[-1].y0 == point.y:
                     return track.index
         return -1
 
     def ask_to_save_track(self, index):
-        response = messagebox.askyesno("Save Track", "Do you want to save this track?")
-        if response:
-            for p in self.tracks[index].points:
-                self.centers[p.t, p.y0, p.x0] = np.nan
+        response = messagebox.askyesnocancel("Save Track", "Do you want to save this track?")
+        if response is not None:
+            if response:
+                for p in self.tracks[index].points:
+                    self.centers[p.t, p.y0, p.x0] = np.nan
+                self.tracks[index].save()
+                messagebox.showinfo("Saving", f"Track was saved into {self.path_save_file}/{index:09d}.csv")
 
-            self.tracks[index].save()
-            # self.load_tracks(self.path_save_file)
-            messagebox.showinfo("Saving", f"Track was saved into {self.path_save_file}/{index:09d}.csv")
+            if not response:
+                for po in self.tracks[index].points:
+                    if po.plot and po.plot in self.ax.lines:
+                        po.plot.remove()
+                if self.tracks[index].plot and self.tracks[index].plot in self.ax.lines:
+                    self.tracks[index].plot.remove()
+                for p in self.tracks[index].points:
+                    if p and p in self.ax.collections:
+                        p.remove()
+                self.tracks[index] = None
+
             self.curr_point = None
             self.prev_point = None
-
             if self.curr_line:
                 self.curr_line.remove()
                 self.curr_line = None
@@ -382,10 +381,11 @@ class MapApp(tk.Tk):
                 self.curr_el = None
 
     def load_tracks(self, path):
-        files = sorted(glob(path + "/*.csv"))
+        files = sorted(glob(path + "/[!~$]*.csv"))
         for f in files:
             df = pd.read_csv(f)
-            self.centers[df['time_ind'].astype('int64'), df['pyc_ind'].astype('int64'), df['pxc_ind'].astype('int64')] = np.nan
+            self.centers[
+                df['time_ind'].astype('int64'), df['pyc_ind'].astype('int64'), df['pxc_ind'].astype('int64')] = np.nan
             self.tracks.append(0)
         self.canvas.draw()
 

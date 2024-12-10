@@ -1,7 +1,8 @@
 from netCDF4 import Dataset
 import numpy as np
 
-RES = 'LoRes'; PREF = '77km'
+RES = 'LoRes'
+PREF = '77km'
 
 RORTEX_VARNAME = 'R2D'
 LOCAL_EXTR_VARNAME = 'local_extr_crit'
@@ -10,21 +11,19 @@ SCALAR_LEVELS = np.arange(40000, 70000, 50)
 SCALAR_LEVELS_FINE = np.arange(40000, 70000, 10)
 
 TRACKS_FOLDER = 'track_folder'
-FILE_RORTEX = 'm09.nc' # LoRes_DBSCAN_2010.nc
+FILE_RORTEX = "LoRes_DBSCAN_2010.nc"
 FILE_SAVE = f"test.txt"
 
-# first_time = True
+first_time = False
 
-# FILE_LAND = f"/storage/NAADSERVER/NAAD/{RES}/Invariants/NAAD{PREF}_hgt.nc"
 FILE_LAND = "NAAD77km_hgt.nc"
 ds_land = Dataset(FILE_LAND)
 LAND = ds_land["hgt"][:, :]
 ds_land.close()
 LAND = np.where(LAND > 0, 0, np.nan)
-
+WIN_SCALE = 1
 TEST_TRACK_SRC = "./"
 
 from pyproj import Geod
-
-geod = Geod(ellps="WGS84")
+GEOD = Geod(ellps="WGS84")
 PHI = np.linspace(0, 2 * np.pi, 100)

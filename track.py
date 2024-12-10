@@ -1,6 +1,5 @@
 import pandas as pd
-import xarray as xr # conda install -c conda-forge xarray dask netCDF4 bottleneck
-
+import xarray as xr  # conda install -c conda-forge xarray dask netCDF4 bottleneck
 from const import *
 
 
@@ -144,21 +143,19 @@ class Track:
             px3_ind.append(po.p3[0])
             py3_ind.append(po.p3[1])
 
-
             try:
                 if po.plot and po.plot in self.ax.lines:
                     po.plot.remove()
             except:
                 pass
 
-        track_data = {  'time':ptt_ind, 'time_ind':pit_ind,
-                        'pxc_ind':pxc_ind, 'pyc_ind':pyc_ind,
-                        'px1_ind':px1_ind, 'py1_ind':py1_ind,
-                        'px2_ind':px2_ind, 'py2_ind':py2_ind,
-                        'px3_ind':px3_ind, 'py3_ind':py3_ind     }
+        track_data = {'time': ptt_ind, 'time_ind': pit_ind,
+                      'pxc_ind': pxc_ind, 'pyc_ind': pyc_ind,
+                      'px1_ind': px1_ind, 'py1_ind': py1_ind,
+                      'px2_ind': px2_ind, 'py2_ind': py2_ind,
+                      'px3_ind': px3_ind, 'py3_ind': py3_ind}
         df = pd.DataFrame(track_data)
         df.to_csv(filename)
-        print(df)
 
         try:
             if self.plot and self.plot in self.ax.lines:
@@ -168,3 +165,9 @@ class Track:
                     p.remove()
         except:
             pass
+
+
+def remove_collections(collection):
+    if collection:
+        for coll in collection.collections:
+            coll.remove()
