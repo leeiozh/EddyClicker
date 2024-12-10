@@ -171,3 +171,8 @@ def remove_collections(collection):
     if collection:
         for coll in collection.collections:
             coll.remove()
+
+
+def remove_streamline(streamlines):
+    if streamlines:
+        streamlines.lines.remove()

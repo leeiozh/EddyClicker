@@ -92,6 +92,7 @@ class MapApp(tk.Tk):
         self.prev_el = None
         self.curr_el = None
         self.sel_el = False
+        self.back = "contour"
         self.k = 1
         self.tracks = []
 
@@ -127,6 +128,7 @@ class MapApp(tk.Tk):
         self.bind("<Down>", self.go_back)
         self.bind("<Up>", self.go_forward)
         self.bind("<Escape>", self.release_track)
+        self.bind("<space>", self.change_back)
         self.focus_set()
 
         if self.path_save_file:
@@ -134,9 +136,11 @@ class MapApp(tk.Tk):
         self.create_map()
 
     def create_map(self):
-
         remove_collections(self.rortex)
-        remove_collections(self.scalar)
+        if self.back == "contour":
+            remove_collections(self.scalar)
+        else:
+            remove_streamline(self.scalar)
 
         if self.curr_centers:
             if self.prev_centers:
@@ -148,19 +152,26 @@ class MapApp(tk.Tk):
 
         self.ax.contourf(self.mesh_lon, self.mesh_lat, LAND, colors="LightGrey")
 
-        rortex = self.file_rortex[RORTEX_VARNAME][self.shot, :, :]
+        if self.back == "contour":
+            self.scalar = self.ax.contour(self.mesh_lon, self.mesh_lat,
+                                          self.file_rortex[SCALAR_VARNAME][self.shot, 0, :, :],
+                                          levels=SCALAR_LEVELS, alpha=0.7, colors="k", linewidths=0.2)
+        else:
+            self.scalar = self.ax.streamplot(self.mesh_lon, self.mesh_lat,
+                                             self.file_rortex[VELOCITY_VARNAME[0]][self.shot, 0, :, :],
+                                             self.file_rortex[VELOCITY_VARNAME[1]][self.shot, 0, :, :],
+                                             color="k", linewidth=0.4, arrowsize=0, density=3)
+
+        rortex = self.file_rortex[RORTEX_VARNAME][self.shot, 0, :, :]
         rortex = np.where(rortex <= 0, np.nan, rortex)
         self.rortex = self.ax.contourf(self.mesh_lon, self.mesh_lat, rortex, levels=10, cmap="gnuplot_r", alpha=0.8)
 
-        self.scalar = self.ax.contour(self.mesh_lon, self.mesh_lat, self.file_rortex[SCALAR_VARNAME][self.shot, :, :],
-                                      levels=SCALAR_LEVELS, alpha=0.7, colors="k", linewidths=0.2)
-
-        mask = self.centers[self.shot, :, :] > 0
+        mask = self.centers[self.shot, 0, :, :] > 0
         self.curr_centers = self.ax.scatter(self.mesh_lon[mask], self.mesh_lat[mask], facecolor="None", edgecolor="k",
                                             zorder=6, s=100, lw=2)
 
         self.ax.set_title((dt.datetime(year=1979, month=1, day=1) + dt.timedelta(
-            minutes=int(self.file_rortex["XTIME"][self.shot]))).strftime("%d.%m.%Y %H:%M"), fontsize=20)
+            minutes=int(self.file_rortex["Time"][self.shot]))).strftime("%d.%m.%Y %H:%M"), fontsize=20)
         self.ax.format_coord = self.custom_format_coord
         self.canvas.draw()
 
@@ -181,7 +192,7 @@ class MapApp(tk.Tk):
         self.create_map()
 
     def go_forward(self, event=None):
-        if self.shot < len(self.file_rortex["XTIME"][:]) - 1:
+        if self.shot < len(self.file_rortex["Time"][:]) - 1:
             self.shot += 1
         self.create_map()
 
@@ -196,6 +207,16 @@ class MapApp(tk.Tk):
                 self.curr_el.plot.remove()
                 self.curr_el = None
         self.canvas.draw()
+
+    def change_back(self, event=None):
+        if self.back == "contour":
+            remove_collections(self.scalar)
+            self.back = "stream"
+        else:
+            remove_streamline(self.scalar)
+            self.back = "contour"
+        self.scalar = None
+        self.create_map()
 
     def custom_format_coord(self, x, y):
         return f"x = {x:.0f}, y = {y:.0f}; Lat = {self.lat_int(x, y)[0, 0]:.2f}°, Lon = {self.lon_int(x, y)[0, 0]:.2f}°"
