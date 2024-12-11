@@ -205,7 +205,9 @@ class MapApp(tk.Tk):
         if self.curr_el:
             if self.curr_el.plot:
                 self.curr_el.plot.remove()
-                self.curr_el = None
+            if self.curr_el.points:
+                self.curr_el.points.remove()
+            self.curr_el = None
         self.canvas.draw()
 
     def change_back(self, event=None):
@@ -405,8 +407,8 @@ class MapApp(tk.Tk):
         files = sorted(glob(path + "/[!~$]*.csv"))
         for f in files:
             df = pd.read_csv(f)
-            self.centers[
-                df['time_ind'].astype('int64'), df['pyc_ind'].astype('int64'), df['pxc_ind'].astype('int64')] = np.nan
+            self.centers[df['time_ind'].astype('int64'), :,
+            df['pyc_ind'].astype('int64'), df['pxc_ind'].astype('int64')] = np.nan
             self.tracks.append(0)
         self.canvas.draw()
 
