@@ -128,7 +128,7 @@ class Track:
         py3_ind = []
 
         with xr.open_dataset(FILE_RORTEX) as ds:
-            times = ds['XTIME']
+            times = ds['Time']
 
         for po in self.points:
 

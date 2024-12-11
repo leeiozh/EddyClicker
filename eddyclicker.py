@@ -245,7 +245,7 @@ class MapApp(tk.Tk):
         if file_path:
             self.path_file_rortex = file_path
             ds = Dataset(self.path_file_rortex)
-            self.centers = ds["center"][:, :, :]
+            self.centers = ds["center"][:, 0, :, :]
             ds.close()
             self.create_map()
             self.change_path(file_path, "FILE_RORTEX")
@@ -355,7 +355,7 @@ class MapApp(tk.Tk):
         self.canvas.draw_idle()
 
     def is_center(self, x, y, c=0):
-        mask = self.centers[self.shot + c, :, :] > 0
+        mask = self.centers[self.shot + c, 0, :, :] > 0
         centers = np.column_stack((self.mesh_lon[mask], self.mesh_lat[mask]))
         for center in centers:
             if np.isclose([x, y], center, atol=2).all():
@@ -374,7 +374,7 @@ class MapApp(tk.Tk):
         if response is not None:
             if response:
                 for p in self.tracks[index].points:
-                    self.centers[p.t, p.y0, p.x0] = np.nan
+                    self.centers[p.t, 0, p.y0, p.x0] = np.nan
                 self.tracks[index].save()
                 messagebox.showinfo("Saving", f"Track was saved into {self.path_save_file}/{index:09d}.csv")
 
