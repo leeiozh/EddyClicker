@@ -82,6 +82,12 @@ class Ellipse:
                                  ellipse_points[1, :] + self.center[1],
                                  c="blue", lw=1)[0]
 
+    def clean(self):
+        if self.plot:
+            self.plot.remove()
+        if self.points:
+            self.points.remove()
+
 
 class Track:
     def __init__(self, index, ax):
@@ -97,7 +103,7 @@ class Track:
         for p in self.points:
             print(p.x, p.y)
 
-    def draw(self):
+    def draw(self, flag=True):
         if self.plot:
             self.plot.remove()
             self.plot = None
@@ -111,7 +117,8 @@ class Track:
                     p.points.remove()
             except ValueError:
                 pass
-        self.points[-1].draw()
+        if flag:
+            self.points[-1].draw()
 
     def save(self):
         filename = f"{TRACKS_FOLDER}/{self.index:09d}.csv"

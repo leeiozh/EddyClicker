@@ -14,8 +14,8 @@ from os import mkdir
 from track import *
 from const import *
 
-
 # kill -9 $(ps ax | grep eddy | cut -f1 -d' ' | head -1)
+cent_track = 0
 
 
 def show_instructions():
@@ -89,8 +89,6 @@ class MapApp(tk.Tk):
         self.el_p1 = None
         self.el_p2 = None
         self.el_p3 = None
-        self.prev_el = None
-        self.curr_el = None
         self.sel_el = False
         self.back = "contour"
         self.k = 1
@@ -129,6 +127,7 @@ class MapApp(tk.Tk):
         self.bind("<Up>", self.go_forward)
         self.bind("<Escape>", self.release_track)
         self.bind("<space>", self.change_back)
+        self.bind("<Control-z>", self.undo_last)
         self.focus_set()
 
         if self.path_save_file:
@@ -204,12 +203,6 @@ class MapApp(tk.Tk):
         if self.curr_line:
             self.curr_line.remove()
             self.curr_line = None
-        if self.curr_el:
-            if self.curr_el.plot:
-                self.curr_el.plot.remove()
-            if self.curr_el.points:
-                self.curr_el.points.remove()
-            self.curr_el = None
         if self.el_p1:
             self.el_p1.clean()
             self.el_p1 = None
@@ -230,6 +223,13 @@ class MapApp(tk.Tk):
             self.back = "contour"
         self.scalar = None
         self.create_map()
+
+    def undo_last(self, event=None):
+        global cent_track
+        self.tracks[cent_track].points[-1].clean()
+        self.tracks[cent_track].points.pop()
+        self.tracks[cent_track].draw(flag=False)
+        self.release_track()
 
     def custom_format_coord(self, x, y):
         return f"x = {x:.0f}, y = {y:.0f}; Lat = {self.lat_int(x, y)[0, 0]:.2f}°, Lon = {self.lon_int(x, y)[0, 0]:.2f}°"
@@ -271,6 +271,7 @@ class MapApp(tk.Tk):
             self.change_path(folder_path, "TRACKS_FOLDER")
 
     def on_click(self, event):
+        global cent_track
         if event.inaxes != self.ax or event.dblclick:
             return
 
@@ -407,12 +408,6 @@ class MapApp(tk.Tk):
             if self.curr_line:
                 self.curr_line.remove()
                 self.curr_line = None
-            if self.curr_el:
-                if self.curr_el.plot:
-                    self.curr_el.plot.remove()
-                if self.curr_el.points:
-                    self.curr_el.points.remove()
-                self.curr_el = None
 
     def load_tracks(self, path):
         files = sorted(glob(path + "/[!~$]*.csv"))
