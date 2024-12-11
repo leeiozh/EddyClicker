@@ -199,6 +199,8 @@ class MapApp(tk.Tk):
     def release_track(self, event=None):
         if self.prev_point:
             self.prev_point = None
+        if self.curr_point:
+            self.curr_point = None
         if self.curr_line:
             self.curr_line.remove()
             self.curr_line = None
@@ -208,6 +210,15 @@ class MapApp(tk.Tk):
             if self.curr_el.points:
                 self.curr_el.points.remove()
             self.curr_el = None
+        if self.el_p1:
+            self.el_p1.clean()
+            self.el_p1 = None
+        if self.el_p2:
+            self.el_p2.clean()
+            self.el_p2 = None
+        if self.el_p3:
+            self.el_p3.clean()
+            self.el_p3 = None
         self.canvas.draw()
 
     def change_back(self, event=None):
