@@ -83,10 +83,13 @@ class Ellipse:
                                  c="blue", lw=1)[0]
 
     def clean(self):
-        if self.plot:
-            self.plot.remove()
-        if self.points:
-            self.points.remove()
+        try:
+            if self.plot:
+                self.plot.remove()
+            if self.points:
+                self.points.remove()
+        except:
+            pass
 
 
 class Track:
