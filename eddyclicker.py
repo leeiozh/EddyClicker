@@ -14,6 +14,8 @@ from os import mkdir
 from track import *
 from const import *
 
+# import datetime
+
 # kill -9 $(ps ax | grep eddy | cut -f1 -d' ' | head -1)
 cent_track = 0
 
@@ -38,8 +40,8 @@ class MapApp(tk.Tk):
         super().__init__()
         self.title("EddyClicker")
 
-        screen_height = self.winfo_screenheight()
-        window_width = int(screen_height * WIN_SCALE)
+        screen_height = 1000  # self.winfo_screenheight()
+        window_width = 1000  # int(screen_height * WIN_SCALE)
         x_offset = 0
         y_offset = 0
         self.geometry(f"{window_width}x{screen_height}+{x_offset}+{y_offset}")
@@ -90,7 +92,6 @@ class MapApp(tk.Tk):
         self.el_p2 = None
         self.el_p3 = None
         self.sel_el = False
-        # self.back = "contour"
         self.k = 1
         self.tracks = []
 
@@ -126,7 +127,6 @@ class MapApp(tk.Tk):
         self.bind("<Down>", self.go_back)
         self.bind("<Up>", self.go_forward)
         self.bind("<Escape>", self.release_track)
-        # self.bind("<space>", self.change_back)
         self.bind("<Control-z>", self.undo_last)
         self.focus_set()
 
@@ -136,10 +136,7 @@ class MapApp(tk.Tk):
 
     def create_map(self):
         remove_collections(self.rortex)
-        # if self.back == "contour":
         remove_collections(self.scalar)
-        # else:
-        #     remove_streamline(self.scalar)
 
         if self.curr_centers:
             if self.prev_centers:
@@ -151,15 +148,9 @@ class MapApp(tk.Tk):
 
         self.ax.contourf(self.mesh_lon, self.mesh_lat, LAND, colors="LightGrey")
 
-        # if self.back == "contour":
         self.scalar = self.ax.contour(self.mesh_lon, self.mesh_lat,
-                                          self.file_rortex[SCALAR_VARNAME][self.shot, 0, :, :],
-                                          levels=SCALAR_LEVELS, alpha=0.7, colors="k", linewidths=0.2)
-        # else:
-        #     self.scalar = self.ax.streamplot(self.mesh_lon, self.mesh_lat,
-        #                                      self.file_rortex[VELOCITY_VARNAME[0]][self.shot, 0, :, :],
-        #                                      self.file_rortex[VELOCITY_VARNAME[1]][self.shot, 0, :, :],
-        #                                      color="k", linewidth=0.4, arrowsize=0, density=3)
+                                      self.file_rortex[SCALAR_VARNAME][self.shot, 0, :, :],
+                                      levels=SCALAR_LEVELS, alpha=0.7, colors="k", linewidths=0.2)
 
         rortex = self.file_rortex[RORTEX_VARNAME][self.shot, 0, :, :]
         rortex = np.where(rortex <= 0, np.nan, rortex)
@@ -169,8 +160,11 @@ class MapApp(tk.Tk):
         self.curr_centers = self.ax.scatter(self.mesh_lon[mask], self.mesh_lat[mask], facecolor="None", edgecolor="k",
                                             zorder=6, s=100, lw=2)
 
-        self.ax.set_title((dt.datetime(year=1970, month=1, day=1) + dt.timedelta(  ################
-            minutes=int(self.file_rortex["Time"][self.shot]))).strftime("%Y-%m-%d %H:%M"), fontsize=20)
+        # self.ax.set_title(  self.time_entry.get() , fontsize=20)
+        self.ax.set_title((dt.datetime(year=1970, month=1, day=1) + dt.timedelta(
+            hours=int(self.file_rortex["Time"][self.shot]))).strftime("%Y-%m-%d %H:%M"), fontsize=20)
+        # self.ax.set_title((dt.datetime(year=1970, month=1, day=1) + dt.timedelta(
+        #     minutes=int(self.file_rortex["Time"][self.shot]))).strftime("%d.%m.%Y %H:%M"), fontsize=20)
 
         self.ax.format_coord = self.custom_format_coord
         self.canvas.draw()
@@ -179,7 +173,7 @@ class MapApp(tk.Tk):
         time_str = self.time_entry.get()
         try:
             target_time = (dt.datetime.strptime(time_str, "%Y-%m-%d-%H") -
-                           dt.datetime(year=1970, month=1, day=1)).total_seconds() / 60  ################
+                           dt.datetime(year=1970, month=1, day=1)).total_seconds() / 3600
             self.shot = int(np.argmin(np.abs(target_time - np.array(self.file_rortex["Time"][:]))))
             self.create_map()
 
@@ -215,22 +209,14 @@ class MapApp(tk.Tk):
             self.el_p3 = None
         self.canvas.draw()
 
-    # def change_back(self, event=None):
-    #     if self.back == "contour":
-    #         remove_collections(self.scalar)
-    #         self.back = "stream"
-    #     else:
-    #         remove_streamline(self.scalar)
-    #         self.back = "contour"
-    #     self.scalar = None
-    #     self.create_map()
-
     def undo_last(self, event=None):
         global cent_track
-        self.tracks[cent_track].points[-1].clean()
-        self.tracks[cent_track].points.pop()
-        self.tracks[cent_track].draw(flag=False)
-        self.release_track()
+        if len(self.tracks) > cent_track:
+            if self.tracks[cent_track] and len(self.tracks[cent_track].points) > 0:
+                self.tracks[cent_track].points[-1].clean()
+                self.tracks[cent_track].points.pop()
+                self.tracks[cent_track].draw(flag=False)
+                self.release_track()
 
     def custom_format_coord(self, x, y):
         return f"x = {x:.0f}, y = {y:.0f}; Lat = {self.lat_int(x, y)[0, 0]:.2f}°, Lon = {self.lon_int(x, y)[0, 0]:.2f}°"

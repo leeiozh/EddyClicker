@@ -12,7 +12,7 @@ SCALAR_LEVELS = np.arange(40000, 70000, 50)
 SCALAR_LEVELS_FINE = np.arange(40000, 70000, 10)
 
 TRACKS_FOLDER = 'track_folder'
-FILE_RORTEX = "LoRes_DBSCAN_2010_new.nc"
+FILE_RORTEX = "LoRes_DBSCAN_2010_new_time.nc"
 FILE_SAVE = f"test.txt"
 
 FILE_LAND = "NAAD77km_hgt.nc"
