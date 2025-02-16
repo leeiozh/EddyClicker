@@ -212,9 +212,9 @@ class MapApp(tk.Tk):
     def undo_last(self, event=None):
         global cent_track
         if len(self.tracks) > cent_track:
-            if self.tracks[cent_track] and len(self.tracks[cent_track].points) > 0:
-                self.tracks[cent_track].points[-1].clean()
-                self.tracks[cent_track].points.pop()
+            if self.tracks[cent_track] and len(self.tracks[cent_track].ellps) > 0:
+                self.tracks[cent_track].ellps[-1].clean()
+                self.tracks[cent_track].ellps.pop()
                 self.tracks[cent_track].draw(flag=False)
                 self.release_track()
 
@@ -258,6 +258,7 @@ class MapApp(tk.Tk):
             self.change_path(folder_path, "TRACKS_FOLDER")
 
     def on_click(self, event):
+
         global cent_track
         if event.inaxes != self.ax or event.dblclick:
             return
@@ -302,16 +303,17 @@ class MapApp(tk.Tk):
                         if cent_track == -1:
                             print(f"created {len(self.tracks)} track")
                             new_track = Track(len(self.tracks), self.ax)
-                            new_track.points.append(Ellipse(self.prev_point.t, self.prev_point.x, self.prev_point.y,
+                            new_track.ellps.append(Ellipse(self.prev_point.t, self.prev_point.x, self.prev_point.y,
                                                             np.array([self.prev_point.x, self.prev_point.y]),
                                                             np.array([self.prev_point.x, self.prev_point.y]),
                                                             np.array([self.prev_point.x, self.prev_point.y]),
                                                             self.ax))
-                            new_track.points.append(ell)
+                            new_track.ellps.append(ell)
                             self.tracks.append(new_track)
                             self.tracks[-1].draw()
+
                         else:
-                            print(f"appended {len(self.tracks[cent_track].points)} point to {cent_track} track")
+                            print(f"appended {len(self.tracks[cent_track].ellps)} point to {cent_track} track")
                             self.tracks[cent_track].append(ell)
                             self.tracks[-1].draw()
 
@@ -336,12 +338,12 @@ class MapApp(tk.Tk):
                 cent_track = self.in_track(cent)
                 if cent_track != -1:
                     point_index = -1
-                    for i, p in enumerate(self.tracks[cent_track].points):
+                    for i, p in enumerate(self.tracks[cent_track].ellps):
                         if p.x0 == cent.x and p.y0 == cent.y:
                             point_index = i
                             break
                     if point_index != -1:
-                        self.tracks[cent_track].points.pop(point_index)
+                        self.tracks[cent_track].ellps.pop(point_index)
                         self.tracks[cent_track].draw()
                         self.canvas.draw()
         self.canvas.draw()
@@ -366,7 +368,7 @@ class MapApp(tk.Tk):
     def in_track(self, point):
         for track in self.tracks:
             if track != 0 and track is not None:
-                if track.points[-1].x0 == point.x and track.points[-1].y0 == point.y:
+                if track.ellps[-1].x0 == point.x and track.ellps[-1].y0 == point.y:
                     return track.index
         return -1
 
@@ -374,18 +376,18 @@ class MapApp(tk.Tk):
         response = messagebox.askyesnocancel("Save Track", "Do you want to save this track?")
         if response is not None:
             if response:
-                for p in self.tracks[index].points:
+                for p in self.tracks[index].ellps:
                     self.centers[p.t, 0, p.y0, p.x0] = np.nan
                 self.tracks[index].save()
                 messagebox.showinfo("Saving", f"Track was saved into {self.path_save_file}/{index:09d}.csv")
 
             if not response:
-                for po in self.tracks[index].points:
+                for po in self.tracks[index].ellps:
                     if po.plot and po.plot in self.ax.lines:
                         po.plot.remove()
                 if self.tracks[index].plot and self.tracks[index].plot in self.ax.lines:
                     self.tracks[index].plot.remove()
-                for p in self.tracks[index].points:
+                for p in self.tracks[index].ellps:
                     if p and p in self.ax.collections:
                         p.remove()
                 self.tracks[index] = None
