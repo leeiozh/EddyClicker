@@ -40,8 +40,8 @@ class MapApp(tk.Tk):
         super().__init__()
         self.title("EddyClicker")
 
-        screen_height = 1000  # self.winfo_screenheight()
-        window_width = 1000  # int(screen_height * WIN_SCALE)
+        screen_height = 1500  # self.winfo_screenheight()
+        window_width = 1500  # int(screen_height * WIN_SCALE)
         x_offset = 0
         y_offset = 0
         self.geometry(f"{window_width}x{screen_height}+{x_offset}+{y_offset}")
@@ -82,6 +82,7 @@ class MapApp(tk.Tk):
 
         self.shot = 0
         self.rortex = None
+        self.rortex_data = None
         self.scalar = None
         self.curr_centers = None
         self.prev_centers = None
@@ -153,8 +154,8 @@ class MapApp(tk.Tk):
                                       levels=SCALAR_LEVELS, alpha=0.7, colors="k", linewidths=0.2)
 
         rortex = self.file_rortex[RORTEX_VARNAME][self.shot, 0, :, :]
-        rortex = np.where(rortex <= 0, np.nan, rortex)
-        self.rortex = self.ax.contourf(self.mesh_lon, self.mesh_lat, rortex, levels=10, cmap="gnuplot_r", alpha=0.8)
+        self.rortex_data = np.where(rortex <= 0, np.nan, rortex)
+        self.rortex = self.ax.contourf(self.mesh_lon, self.mesh_lat, self.rortex_data, levels=10, cmap="gnuplot_r", alpha=0.8)
 
         mask = self.centers[self.shot, 0, :, :] > 0
         self.curr_centers = self.ax.scatter(self.mesh_lon[mask], self.mesh_lat[mask], facecolor="None", edgecolor="k",
@@ -304,10 +305,10 @@ class MapApp(tk.Tk):
                             print(f"created {len(self.tracks)} track")
                             new_track = Track(len(self.tracks), self.ax)
                             new_track.ellps.append(Ellipse(self.prev_point.t, self.prev_point.x, self.prev_point.y,
-                                                            np.array([self.prev_point.x, self.prev_point.y]),
-                                                            np.array([self.prev_point.x, self.prev_point.y]),
-                                                            np.array([self.prev_point.x, self.prev_point.y]),
-                                                            self.ax))
+                                                           np.array([self.prev_point.x, self.prev_point.y]),
+                                                           np.array([self.prev_point.x, self.prev_point.y]),
+                                                           np.array([self.prev_point.x, self.prev_point.y]),
+                                                           self.ax))
                             new_track.ellps.append(ell)
                             self.tracks.append(new_track)
                             self.tracks[-1].draw()

@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.interpolate import griddata, RectBivariateSpline
 import pandas as pd
 import xarray as xr  # conda install -c conda-forge xarray dask netCDF4 bottleneck
 from const import *
@@ -28,7 +29,7 @@ class Point:
 
 
 class Ellipse:
-    def __init__(self, t, x0, y0, p1, p2, p3, ax):
+    def __init__(self, t, x0, y0, p1, p2, p3, ax=None):
         self.t = t
         self.x0 = x0
         self.y0 = y0
@@ -73,9 +74,7 @@ class Ellipse:
         theta = np.linspace(0, 2 * np.pi, 100)
         x = self.a * np.cos(theta)
         y = self.b * np.sin(theta)
-        R = np.array([[np.cos(self.angle), -np.sin(self.angle)],
-                      [np.sin(self.angle), np.cos(self.angle)]])
-        ellipse_points = R @ np.array([x, y])
+        ellipse_points = self.R @ np.array([x, y])
         self.plot = self.ax.plot(ellipse_points[0, :] + self.center[0],
                                  ellipse_points[1, :] + self.center[1],
                                  c="blue", lw=1)[0]
@@ -86,10 +85,12 @@ class Ellipse:
         :param num_points: number of pints (the less, the more angular)
         :return: [[x of points], [y of points]]
         """
-        theta = np.linspace(0, 2 * np.pi, num_points)
+        theta = np.pi / 2 - np.linspace(0, 2 * np.pi, num_points + 1)[:-1] - self.angle
         x = self.a * np.cos(theta)
         y = self.b * np.sin(theta)
         ellipse_points = self.R @ np.array([x, y])
+        ellipse_points[0, :] += self.center[0]
+        ellipse_points[1, :] += self.center[1]
         return ellipse_points
 
     def inellipse(self, size_x, size_y):
@@ -111,6 +112,41 @@ class Ellipse:
                 if (point[0] / self.a) ** 2 + (point[1] / self.b) ** 2 > 1:
                     res[x, y] = 0
         return res.astype("bool")
+
+    def interpol_data(self, data, n_rho, n_phi):
+        """
+        interpolate data on specific grid in the ellipse
+        :param data: data for interpolation on regular (!) grid
+        :param n_rho: number of points at distance axis
+        :param n_phi: number of points at azimuth axis
+        :return: interpolated data in array with sizes (n_phi, n_rho)
+        """
+        res = np.zeros((n_phi, n_rho))
+        points = self.get_perimeter(n_phi)
+
+        ranges = [[np.linspace(self.center[0], points[0][i], n_rho), np.linspace(self.center[1], points[1][i], n_rho)]
+                  for i in range(n_phi)]
+
+        # for r, rang in enumerate(ranges):
+        #     if r == 0:
+        #         self.ax.plot(rang[0], rang[1], c="k")
+        #     elif r == 1:
+        #         self.ax.plot(rang[0], rang[1], c="g")
+        #     else:
+        #         self.ax.plot(rang[0], rang[1], c="r")
+
+        if np.count_nonzero(np.isnan(data)) > 0:
+            mask = ~np.isnan(data)
+            X, Y = np.meshgrid(np.arange(data.shape[0]), np.arange(data.shape[1]), indexing='ij')
+            points = np.column_stack((X[mask], Y[mask]))
+            for r, rang in enumerate(ranges):
+                res[r, :] = griddata(points, data[mask], np.column_stack((rang[1], rang[0])), method="linear")
+        else:
+            data[np.isnan(data)] = 0
+            interp = RectBivariateSpline(np.arange(data.shape[0]), np.arange(data.shape[1]), data)
+            for r, rang in enumerate(ranges):
+                res[r, :] = interp(rang[1], rang[0], grid=False)
+        return res
 
     def clean(self):
         try:
