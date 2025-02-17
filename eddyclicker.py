@@ -40,8 +40,8 @@ class MapApp(tk.Tk):
         super().__init__()
         self.title("EddyClicker")
 
-        screen_height = 1500  # self.winfo_screenheight()
-        window_width = 1500  # int(screen_height * WIN_SCALE)
+        screen_height = 1000  # self.winfo_screenheight()
+        window_width = 1000  # int(screen_height * WIN_SCALE)
         x_offset = 0
         y_offset = 0
         self.geometry(f"{window_width}x{screen_height}+{x_offset}+{y_offset}")
@@ -312,6 +312,9 @@ class MapApp(tk.Tk):
                             new_track.ellps.append(ell)
                             self.tracks.append(new_track)
                             self.tracks[-1].draw()
+
+                            # for debug
+                            # self.tracks[-1].ellps[-1].interpol_data(self.rortex_data, 36, 36)
 
                         else:
                             print(f"appended {len(self.tracks[cent_track].ellps)} point to {cent_track} track")

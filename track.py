@@ -124,7 +124,12 @@ class Ellipse:
         res = np.zeros((n_phi, n_rho))
         points = self.get_perimeter(n_phi)
 
-        ranges = [[np.linspace(self.center[0], points[0][i], n_rho), np.linspace(self.center[1], points[1][i], n_rho)]
+        # change mathematical center or center_point
+
+        # center_x, center_y = self.center[0], self.center[1]
+        center_x, center_y = self.x0, self.y0
+
+        ranges = [[np.linspace(center_x, points[0][i], n_rho), np.linspace(center_y, points[1][i], n_rho)]
                   for i in range(n_phi)]
 
         # for r, rang in enumerate(ranges):
