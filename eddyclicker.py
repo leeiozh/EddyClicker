@@ -5,7 +5,6 @@ import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-from scipy.interpolate import RectBivariateSpline
 import datetime as dt
 from glob import glob
 from shutil import move
@@ -17,6 +16,7 @@ from const import *
 # import datetime
 
 # kill -9 $(ps ax | grep eddy | cut -f1 -d' ' | head -1)
+
 cent_track = 0
 
 
@@ -40,11 +40,11 @@ class MapApp(tk.Tk):
         super().__init__()
         self.title("EddyClicker")
 
-        screen_height = 1000  # self.winfo_screenheight()
-        window_width = 1000  # int(screen_height * WIN_SCALE)
+        # screen_height = 500  # self.winfo_screenheight()
+        # window_width = 1000  # int(screen_height * WIN_SCALE)
         x_offset = 0
         y_offset = 0
-        self.geometry(f"{window_width}x{screen_height}+{x_offset}+{y_offset}")
+        self.geometry(f"{WINDOW_WIDTH}x{SCREEN_HEIGHT}+{x_offset}+{y_offset}")
         self.resizable(False, False)
         # self.geometry("1000x1000")
 
@@ -78,12 +78,13 @@ class MapApp(tk.Tk):
             mkdir(TRACKS_FOLDER)
 
         self.file_rortex = Dataset(self.path_file_rortex)
-        self.centers = self.file_rortex[LOCAL_EXTR_VARNAME][:, :, :]
+        self.centers = self.file_rortex[LOCAL_EXTR_VARNAME][:, LEVEL, :, :]
 
         self.shot = 0
         self.rortex = None
         self.rortex_data = None
         self.scalar = None
+        self.field = "geopotential"
         self.curr_centers = None
         self.prev_centers = None
         self.curr_line = None
@@ -96,21 +97,21 @@ class MapApp(tk.Tk):
         self.k = 1
         self.tracks = []
 
-        if len(self.file_rortex["XLAT"].shape) == 3:
-            ydim = self.file_rortex["XLAT"].shape[1]
-            xdim = self.file_rortex["XLAT"].shape[2]
+        if len(self.file_rortex["XLAT"].shape) == 3:  # РУДИМЕНТ (по идее можно удалить)
+            ydim = self.file_rortex["XLAT"].shape[1]  # РУДИМЕНТ (по идее можно удалить)
+            xdim = self.file_rortex["XLAT"].shape[2]  # РУДИМЕНТ (по идее можно удалить)
         elif len(self.file_rortex["XLAT"].shape) == 2:
-            ydim = self.file_rortex["XLAT"].shape[0]
             xdim = self.file_rortex["XLAT"].shape[1]
+            ydim = self.file_rortex["XLAT"].shape[0]
         else:
-            exit("STOP! Wrong XLAT/XLONG dimentions")
-
-        self.lat_int = RectBivariateSpline(np.arange(ydim), np.arange(xdim), self.file_rortex["XLAT"][:, :])
-        self.lon_int = RectBivariateSpline(np.arange(ydim), np.arange(xdim), self.file_rortex["XLONG"][:, :])
-        self.mesh_lon, self.mesh_lat = np.meshgrid(np.arange(ydim), np.arange(xdim))
+            exit("MapApp: STOP! Wrong XLAT/XLONG dimentions")
+        self.lat_int = RectBivariateSpline(np.arange(xdim), np.arange(ydim), self.file_rortex["XLAT"][:, :].T)
+        self.lon_int = RectBivariateSpline(np.arange(xdim), np.arange(ydim), self.file_rortex["XLONG"][:, :].T)
+        self.mesh_lon, self.mesh_lat = np.meshgrid(np.arange(xdim), np.arange(ydim), indexing="ij")
 
         # Create figure and canvas
-        self.fig = Figure(figsize=(8, 8), dpi=100)
+        ratio = float(SCREEN_HEIGHT) / float(WINDOW_WIDTH)
+        self.fig = Figure(figsize=(8, 8 * ratio), dpi=100)
         self.ax = self.fig.add_subplot(111)
 
         self.canvas = FigureCanvasTkAgg(self.fig, master=figure_frame)
@@ -129,6 +130,7 @@ class MapApp(tk.Tk):
         self.bind("<Up>", self.go_forward)
         self.bind("<Escape>", self.release_track)
         self.bind("<Control-z>", self.undo_last)
+        self.bind("<space>", self.switch_field)
         self.focus_set()
 
         if self.path_save_file:
@@ -137,35 +139,51 @@ class MapApp(tk.Tk):
 
     def create_map(self):
         remove_collections(self.rortex)
-        remove_collections(self.scalar)
+
+        if self.field == "geopotential":
+            remove_collections(self.scalar)
+        else:
+            ...
 
         if self.curr_centers:
             if self.prev_centers:
                 self.prev_centers.remove()
             self.prev_centers = self.curr_centers.get_offsets()
-            self.prev_centers = self.ax.scatter(self.prev_centers[:, 0], self.prev_centers[:, 1], c="k", zorder=5,
-                                                s=30)
+            self.prev_centers = self.ax.scatter(self.prev_centers[:, 0], self.prev_centers[:, 1], c="k", zorder=5, s=30)
             self.curr_centers.remove()
 
-        self.ax.contourf(self.mesh_lon, self.mesh_lat, LAND, colors="LightGrey")
+        scalar_field = self.file_rortex[SCALAR_VARNAME][self.shot, LEVEL, :, :]
+        scalar_field = np.where(LAND != 0, scalar_field, np.nan)
 
-        self.scalar = self.ax.contour(self.mesh_lon, self.mesh_lat,
-                                      self.file_rortex[SCALAR_VARNAME][self.shot, 0, :, :],
-                                      levels=SCALAR_LEVELS, alpha=0.7, colors="k", linewidths=0.2)
+        min_val = np.nanmin(scalar_field)
+        max_val = np.nanmax(scalar_field)
 
-        rortex = self.file_rortex[RORTEX_VARNAME][self.shot, 0, :, :]
+        scalar_levels = np.arange(min_val, max_val, SCALAR_LEVELS_STEP)
+
+        self.ax.contourf(self.mesh_lon, self.mesh_lat, LAND.T, colors="gray")
+
+        if self.field == "geopotential":
+            self.scalar = self.ax.contour(self.mesh_lon, self.mesh_lat, scalar_field.T,
+                                          levels=scalar_levels, colors="darkolivegreen", linewidths=0.3)
+        else:
+            ...
+
+        rortex = self.file_rortex[RORTEX_VARNAME][self.shot, LEVEL, :, :]
         self.rortex_data = np.where(rortex <= 0, np.nan, rortex)
-        self.rortex = self.ax.contourf(self.mesh_lon, self.mesh_lat, self.rortex_data, levels=10, cmap="gnuplot_r", alpha=0.8)
+        self.rortex = self.ax.contourf(self.mesh_lon, self.mesh_lat, self.rortex_data.T,
+                                       levels=10, cmap="gnuplot_r", alpha=0.8)
 
-        mask = self.centers[self.shot, 0, :, :] > 0
-        self.curr_centers = self.ax.scatter(self.mesh_lon[mask], self.mesh_lat[mask], facecolor="None", edgecolor="k",
-                                            zorder=6, s=100, lw=2)
+        mask = (self.centers[self.shot, :, :] > 0).T
+        self.curr_centers = self.ax.scatter(self.mesh_lon[mask], self.mesh_lat[mask], facecolor="None",
+                                            edgecolor="k", zorder=6, s=50, lw=1)
 
-        # self.ax.set_title(  self.time_entry.get() , fontsize=20)
-        self.ax.set_title((dt.datetime(year=1970, month=1, day=1) + dt.timedelta(
-            hours=int(self.file_rortex["Time"][self.shot]))).strftime("%Y-%m-%d %H:%M"), fontsize=20)
-        # self.ax.set_title((dt.datetime(year=1970, month=1, day=1) + dt.timedelta(
-        #     minutes=int(self.file_rortex["Time"][self.shot]))).strftime("%d.%m.%Y %H:%M"), fontsize=20)
+        title_str = (f"{(dt.datetime(year=1970, month=1, day=1) +
+                         dt.timedelta(hours=int(self.file_rortex["Time"][self.shot]))).strftime("%Y-%m-%d %H:%M")} "
+                     f"({LEV_HGT:.1f} km)")
+        self.ax.set_title(title_str, fontsize=20)
+        # self.ax.set_title(self.file_rortex["Time"][self.shot], fontsize=20)
+        # # self.ax.set_title((dt.datetime(year=1970, month=1, day=1) + dt.timedelta(
+        # #     minutes=int(self.file_rortex["Time"][self.shot]))).strftime("%d.%m.%Y %H:%M"), fontsize=20)
 
         self.ax.format_coord = self.custom_format_coord
         self.canvas.draw()
@@ -219,6 +237,18 @@ class MapApp(tk.Tk):
                 self.tracks[cent_track].draw(flag=False)
                 self.release_track()
 
+    def switch_field(self, event=None):
+        if self.field == "geopotential":
+            exit("Error! Write code for switching first!!!")
+            remove_collections(self.scalar)
+            self.field = "new_var"
+        else:
+            ...
+            remove_streamline(self.scalar)
+            self.field = "geopotential"
+        self.scalar = None
+        self.create_map()
+
     def custom_format_coord(self, x, y):
         return f"x = {x:.0f}, y = {y:.0f}; Lat = {self.lat_int(x, y)[0, 0]:.2f}°, Lon = {self.lon_int(x, y)[0, 0]:.2f}°"
 
@@ -246,7 +276,7 @@ class MapApp(tk.Tk):
         if file_path:
             self.path_file_rortex = file_path
             ds = Dataset(self.path_file_rortex)
-            self.centers = ds["center"][:, 0, :, :]
+            self.centers = ds["center"][:, LEVEL, :, :]
             ds.close()
             self.create_map()
             self.change_path(file_path, "FILE_RORTEX")
@@ -362,10 +392,10 @@ class MapApp(tk.Tk):
         self.canvas.draw_idle()
 
     def is_center(self, x, y, c=0):
-        mask = self.centers[self.shot + c, 0, :, :] > 0
-        centers = np.column_stack((self.mesh_lon[mask], self.mesh_lat[mask]))
+        mask = self.centers[self.shot + c, :, :] > 0
+        centers = np.column_stack((self.mesh_lon[mask.T], self.mesh_lat[mask.T]))
         for center in centers:
-            if np.isclose([x, y], center, atol=2).all():
+            if np.isclose([x, y], center, atol=5).all():
                 return True, Point(self.shot + c, center[0], center[1])
         return False, Point(-1, -1, -1)
 
@@ -381,7 +411,7 @@ class MapApp(tk.Tk):
         if response is not None:
             if response:
                 for p in self.tracks[index].ellps:
-                    self.centers[p.t, 0, p.y0, p.x0] = np.nan
+                    self.centers[p.t, p.y0, p.x0] = np.nan
                 self.tracks[index].save()
                 messagebox.showinfo("Saving", f"Track was saved into {self.path_save_file}/{index:09d}.csv")
 
@@ -406,8 +436,9 @@ class MapApp(tk.Tk):
         files = sorted(glob(path + "/[!~$]*.csv"))
         for f in files:
             df = pd.read_csv(f)
-            self.centers[df['time_ind'].astype('int64'), :,
-            df['pyc_ind'].astype('int64'), df['pxc_ind'].astype('int64')] = np.nan
+            self.centers[df['time_ind'].astype('int64'),
+            df['pyc_ind'].astype('int64'),
+            df['pxc_ind'].astype('int64')] = np.nan
             self.tracks.append(0)
         self.canvas.draw()
 

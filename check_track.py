@@ -47,7 +47,7 @@ def main():
 
     ### READ: NC FILE
 
-    with xr.open_dataset(FILE_LAND) as ds:
+    with xr.open_dataset(FILE_RORTEX) as ds:
         hgt = ds['hgt']
         hgt = xr.where(hgt > 5, 1, np.nan)
 
