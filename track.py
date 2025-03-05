@@ -12,7 +12,7 @@ class DrawPoint:
         self.scat = None
 
     def draw(self):
-        self.scat = self.ax.scatter(self.x, self.y, c="b")
+        self.scat = self.ax.scatter(self.x, self.y, c="b", zorder=10)
 
     def clean(self):
         if self.scat:
@@ -76,7 +76,7 @@ class Ellipse:
         ellipse_points = self.R @ np.array([x, y])
         self.plot = self.ax.plot(ellipse_points[0, :] + self.center[0],
                                  ellipse_points[1, :] + self.center[1],
-                                 c="blue", lw=1)[0]
+                                 c="blue", lw=1, zorder=10)[0]
 
     def get_perimeter(self, num_points=36):
         """
@@ -131,13 +131,13 @@ class Ellipse:
         ranges = [[np.linspace(center_x, points[0][i], n_rho), np.linspace(center_y, points[1][i], n_rho)]
                   for i in range(n_phi)]
 
-        for r, rang in enumerate(ranges):
-            if r == 0:
-                self.ax.plot(rang[0], rang[1], c="k")
-            elif r == 1:
-                self.ax.plot(rang[0], rang[1], c="g")
-            else:
-                self.ax.plot(rang[0], rang[1], c="r")
+        # for r, rang in enumerate(ranges):
+        #     if r == 0:
+        #         self.ax.plot(rang[0], rang[1], c="k")
+        #     elif r == 1:
+        #         self.ax.plot(rang[0], rang[1], c="g")
+        #     else:
+        #         self.ax.plot(rang[0], rang[1], c="r")
 
         if np.count_nonzero(np.isnan(data)) > 0:
             mask = ~np.isnan(data)
@@ -150,7 +150,7 @@ class Ellipse:
             interp = RectBivariateSpline(np.arange(data.shape[0]), np.arange(data.shape[1]), data)
             for r, rang in enumerate(ranges):
                 res[r, :] = interp(rang[1], rang[0], grid=False)
-        np.save("val.npy", res)
+        # np.save("val.npy", res)
         return res
 
     def clean(self):
@@ -181,7 +181,7 @@ class Track:
         if self.plot:
             self.plot.remove()
             self.plot = None
-        self.plot = self.ax.plot([p.x0 for p in self.ellps], [p.y0 for p in self.ellps], c="k", lw=1)[0]
+        self.plot = self.ax.plot([p.x0 for p in self.ellps], [p.y0 for p in self.ellps], c="k", lw=1, zorder=10)[0]
 
         for p in self.ellps[:-1]:
             try:

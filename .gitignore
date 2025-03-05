@@ -1,0 +1,8 @@
+__pycache__
+*.nc
+*.npy
+track_plots
+track_folder
+
+.DS_Store
+.Trash*
