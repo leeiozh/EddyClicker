@@ -172,7 +172,12 @@ class MapApp(tk.Tk):
 
         # scalar background
         remove_collections(self.scalar)
-        scalar_field = self.file_rortex[self.field][self.shot, LEVEL, :, :]
+
+        if len(self.file_rortex[self.field].shape) == 4:
+            scalar_field = self.file_rortex[self.field][self.shot, LEVEL, :, :]
+        else:
+            scalar_field = self.file_rortex[self.field][self.shot, :, :]
+
         scalar_field = np.where(LAND != 0, scalar_field, np.nan)
         min_val = np.nanmin(scalar_field)
         max_val = np.nanmax(scalar_field)
@@ -182,9 +187,9 @@ class MapApp(tk.Tk):
             self.scalar = self.ax.contour(self.mesh_lon, self.mesh_lat, scalar_field.T,
                                           levels=scalar_levels, colors="darkolivegreen", linewidths=0.3)
         else:
-            scalar_levels = np.arange(min_val, max_val, 1)
+            scalar_levels = np.arange(min_val, max_val, SCALAR2_LEVELS_STEP)
             self.scalar = self.ax.contourf(self.mesh_lon, self.mesh_lat, scalar_field.T,
-                                           levels=scalar_levels, cmap="viridis", zorder=4)
+                                           levels=scalar_levels, cmap="binary_r", zorder=4)
         self.canvas.draw()
 
     def update_time(self, event):

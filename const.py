@@ -27,8 +27,9 @@ LEVEL = 0  # Level of interest
 RORTEX_VARNAME = 'R2D'  # Criteria to plot (contourf)
 LOCAL_EXTR_VARNAME = 'local_extr_cluster'  # dots to plot (scatter)
 SCALAR1_VARNAME = 'geopotential'  # help field (contour)
-SCALAR2_VARNAME = 'WSPD'  # help field (at spacebar)
+SCALAR2_VARNAME = 'cloudfrac'  # help field (at spacebar)
 SCALAR1_LEVELS_STEP = 50  # contour interval
+SCALAR2_LEVELS_STEP = 0.01  # contour interval
 SCALAR1_LEVELS_FINE_STEP = 10  # contour interval view
 
 TRACKS_FOLDER = 'track_folder'  # track output folder
