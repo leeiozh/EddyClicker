@@ -13,27 +13,25 @@ import numpy as np
 # mv tmp.nc sigma_2_DBSCAN_SMP_level_20_2021-02-23.nc
 #
 
-# DATASET DESCRIPTION
-RES = 'SMP'
-PREF = '6km'
-
 ### MAIN VARIABLES
 
 # GUI windows size
 SCREEN_HEIGHT = 1000
-WINDOW_WIDTH = 2000
+WINDOW_WIDTH = 1000
 
 LEVEL = 0  # Level of interest
 RORTEX_VARNAME = 'R2D'  # Criteria to plot (contourf)
 LOCAL_EXTR_VARNAME = 'local_extr_cluster'  # dots to plot (scatter)
-SCALAR1_VARNAME = 'geopotential'  # help field (contour)
-SCALAR2_VARNAME = 'cloudfrac'  # help field (at spacebar)
-SCALAR1_LEVELS_STEP = 50  # contour interval
-SCALAR2_LEVELS_STEP = 0.01  # contour interval
-SCALAR1_LEVELS_FINE_STEP = 10  # contour interval view
+
+SCALARS = {
+	'scalar1': {'name':'geopotential', 'step': 50  , 'cmap': '' },
+	'scalar2': {'name':'cloudfrac'   , 'step': 0.01, 'cmap': 'binary_r'},
+	# 'scalar2': {'name':'WSPD'        , 'step': 1   , 'cmap': 'viridis' },
+}
+
 
 TRACKS_FOLDER = 'track_folder'  # track output folder
-FILE_RORTEX = "2019-01.nc"  # Input file
+FILE_RORTEX = "NAADl_2010.nc"  # Input file
 FILE_SAVE = f"test.txt"
 
 # Get land map

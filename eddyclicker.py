@@ -20,6 +20,11 @@ from const import *
 
 cent_track = 0
 
+SCALAR1_VARNAME = SCALARS['scalar1']['name']
+SCALAR2_VARNAME = SCALARS['scalar2']['name']
+SCALAR1_LEVELS_STEP = SCALARS['scalar1']['step']
+SCALAR2_LEVELS_STEP = SCALARS['scalar2']['step']
+SCALAR2_CMAP        = SCALARS['scalar2']['cmap']
 
 def show_instructions():
     instructions = (
@@ -148,7 +153,7 @@ class MapApp(tk.Tk):
             rortex = self.file_rortex[RORTEX_VARNAME][self.shot, LEVEL, :, :]
             rortex_data = np.where(rortex <= 0, np.nan, rortex)
             self.rortex = self.ax.contourf(self.mesh_lon, self.mesh_lat, rortex_data.T,
-                                           levels=10, cmap="gnuplot_r", alpha=0.8)
+                                           levels=10, zorder=3, cmap="gnuplot_r", alpha=0.8)
 
             # current centers -> previous centers
             if self.curr_centers:
@@ -178,18 +183,18 @@ class MapApp(tk.Tk):
         else:
             scalar_field = self.file_rortex[self.field][self.shot, :, :]
 
-        scalar_field = np.where(LAND != 0, scalar_field, np.nan)
+        # scalar_field = np.where(LAND != 0, scalar_field, np.nan)
         min_val = np.nanmin(scalar_field)
         max_val = np.nanmax(scalar_field)
 
         if self.field == SCALAR1_VARNAME:
             scalar_levels = np.arange(min_val, max_val, SCALAR1_LEVELS_STEP)
             self.scalar = self.ax.contour(self.mesh_lon, self.mesh_lat, scalar_field.T,
-                                          levels=scalar_levels, colors="darkolivegreen", linewidths=0.3)
+                                          levels=scalar_levels, zorder=5, colors="darkolivegreen", linewidths=0.3)
         else:
             scalar_levels = np.arange(min_val, max_val, SCALAR2_LEVELS_STEP)
             self.scalar = self.ax.contourf(self.mesh_lon, self.mesh_lat, scalar_field.T,
-                                           levels=scalar_levels, cmap="binary_r", zorder=4)
+                                           levels=scalar_levels, extend='both', cmap=SCALAR2_CMAP, zorder=4)
         self.canvas.draw()
 
     def update_time(self, event):
