@@ -427,7 +427,7 @@ class MapApp(tk.Tk):
                 for p in self.tracks[index].ellps:
                     if p and p in self.ax.collections:
                         p.remove()
-                self.tracks[index] = None
+                self.tracks.pop(index)
 
             self.curr_point = None
             self.prev_point = None
@@ -443,6 +443,7 @@ class MapApp(tk.Tk):
             df['pyc_ind'].astype('int64'),
             df['pxc_ind'].astype('int64')] = np.nan
             self.tracks.append(0)
+        print(f"loaded {len(self.tracks)} tracks from {path}")
         self.canvas.draw()
 
 

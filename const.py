@@ -17,7 +17,7 @@ import numpy as np
 
 # GUI windows size
 SCREEN_HEIGHT = 1000
-WINDOW_WIDTH = 1000
+WINDOW_WIDTH = 1500
 
 LEVEL = 0  # Level of interest
 RORTEX_VARNAME = 'R2D'  # Criteria to plot (contourf)
@@ -31,7 +31,7 @@ SCALARS = {
 
 
 TRACKS_FOLDER = 'track_folder'  # track output folder
-FILE_RORTEX = "NAADl_2010.nc"  # Input file
+FILE_RORTEX = "NAADl_2010.nc"  # Input file #
 FILE_SAVE = f"test.txt"
 
 # Get land map
