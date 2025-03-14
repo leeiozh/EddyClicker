@@ -16,7 +16,7 @@ import numpy as np
 ### MAIN VARIABLES
 
 # GUI windows size
-SCREEN_HEIGHT = 1000
+SCREEN_HEIGHT = 850
 WINDOW_WIDTH = 1500
 
 LEVEL = 0  # Level of interest
@@ -31,7 +31,7 @@ SCALARS = {
 
 
 TRACKS_FOLDER = 'track_folder'  # track output folder
-FILE_RORTEX = "NAADl_2010.nc"  # Input file #
+FILE_RORTEX = "2019-01.nc"  # Input file #
 FILE_SAVE = f"test.txt"
 
 # Get land map

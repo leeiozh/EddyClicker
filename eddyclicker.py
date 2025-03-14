@@ -24,7 +24,8 @@ SCALAR1_VARNAME = SCALARS['scalar1']['name']
 SCALAR2_VARNAME = SCALARS['scalar2']['name']
 SCALAR1_LEVELS_STEP = SCALARS['scalar1']['step']
 SCALAR2_LEVELS_STEP = SCALARS['scalar2']['step']
-SCALAR2_CMAP        = SCALARS['scalar2']['cmap']
+SCALAR2_CMAP = SCALARS['scalar2']['cmap']
+
 
 def show_instructions():
     instructions = (
@@ -146,7 +147,7 @@ class MapApp(tk.Tk):
 
         if self.scalar is not None:
             # land
-            self.ax.contourf(self.mesh_lon, self.mesh_lat, LAND.T, colors="gray")
+            self.ax.contourf(self.mesh_lon, self.mesh_lat, LAND.T, zorder=3, colors="gray")
 
             # rortex
             remove_collections(self.rortex)
@@ -170,9 +171,8 @@ class MapApp(tk.Tk):
                                                 edgecolor="k", zorder=6, s=50, lw=1)
 
             # title
-            title_str = (f"{(dt.datetime(year=1970, month=1, day=1) +
-                             dt.timedelta(hours=int(self.file_rortex["Time"][self.shot]))).strftime("%Y-%m-%d %H:%M")} "
-                         f"({LEV_HGT:.1f} km)")
+            title_str = f"{(dt.datetime(year=1970, month=1, day=1) + dt.timedelta(hours=int(self.file_rortex['Time'][self.shot]))).strftime('%Y-%m-%d %H:%M')} ({LEV_HGT:.1f} km)"
+
             self.ax.set_title(title_str, fontsize=20)
 
         # scalar background
@@ -189,8 +189,8 @@ class MapApp(tk.Tk):
 
         if self.field == SCALAR1_VARNAME:
             scalar_levels = np.arange(min_val, max_val, SCALAR1_LEVELS_STEP)
-            self.scalar = self.ax.contour(self.mesh_lon, self.mesh_lat, scalar_field.T,
-                                          levels=scalar_levels, zorder=5, colors="darkolivegreen", linewidths=0.3)
+            self.scalar = self.ax.contour(self.mesh_lon, self.mesh_lat, scalar_field.T, levels=scalar_levels,
+                                          zorder=2, colors="darkolivegreen", linewidths=0.3)
         else:
             scalar_levels = np.arange(min_val, max_val, SCALAR2_LEVELS_STEP)
             self.scalar = self.ax.contourf(self.mesh_lon, self.mesh_lat, scalar_field.T,
