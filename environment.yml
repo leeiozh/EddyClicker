@@ -1,0 +1,14 @@
+name: clicker_env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12.2
+  - pandas
+  - cartopy
+  - matplotlib=3.9.2
+  - netCDF4
+  - numpy
+  - scipy
+  - xarray
+  - dask
+  - bottleneck
