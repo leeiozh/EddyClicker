@@ -8,6 +8,7 @@ All packages are listed in environment.yml, so you can install it using pip or A
 
 ```sh
 conda env create --file environment.yml
+cd EddyClicker
 conda activate clicker_env
 python eddyclicker.py
 ```
