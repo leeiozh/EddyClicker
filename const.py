@@ -1,18 +1,6 @@
 from netCDF4 import Dataset
 import numpy as np
 
-# Подготовка данных
-# cdo select,var=HGT /storage/kubrick/SMP6km/2021/wrfout_d01_2021-02-23_00.nc tmp.nc
-# cdo seltimestep,1 tmp.nc tmp1.nc
-# cdo --reduce_dim tmp1.nc tmp2.nc
-# cdo chname,HGT,hgt tmp2.nc SMP6km_hgt.nc
-# rm tmp*
-#
-# cp scp kubrick:/storage/kubrick/vkoshkina/data/SMP/R2D_SMP_smoothing/sigma_2_R2D_SMP_2021-02-23.nc .
-# cdo merge geopotential.nc sigma_2_DBSCAN_SMP_level_20_2021-02-23.nc tmp.nc
-# mv tmp.nc sigma_2_DBSCAN_SMP_level_20_2021-02-23.nc
-#
-
 ### MAIN VARIABLES
 
 # GUI windows size
