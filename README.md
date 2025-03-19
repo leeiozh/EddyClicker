@@ -7,8 +7,8 @@ Project for manual eddies tracking written by Elizaveta Ezhova (October, 2024).
 All packages are listed in environment.yml, so you can install it using pip or Anaconda.
 
 ```sh
-conda env create --file environment.yml
 cd EddyClicker
+conda env create --file environment.yml
 conda activate clicker_env
 python eddyclicker.py
 ```
