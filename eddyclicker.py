@@ -20,11 +20,14 @@ from const import *
 
 cent_track = 0
 
-SCALAR1_VARNAME = SCALARS['scalar1']['name']
-SCALAR2_VARNAME = SCALARS['scalar2']['name']
-SCALAR1_LEVELS_STEP = SCALARS['scalar1']['step']
-SCALAR2_LEVELS_STEP = SCALARS['scalar2']['step']
-SCALAR2_CMAP = SCALARS['scalar2']['cmap']
+
+# а в этом был сакральный смысл?
+# SCALAR1_VARNAME = SCALARS['scalar1']['name']
+# SCALAR2_VARNAME = SCALARS['scalar2']['name']
+# SCALAR3_VARNAME = SCALARS['scalar3']['name']
+# SCALAR1_LEVELS_STEP = SCALARS['scalar1']['step']
+# SCALAR2_LEVELS_STEP = SCALARS['scalar2']['step']
+# SCALAR2_CMAP = SCALARS['scalar2']['cmap']
 
 
 def show_instructions():
@@ -88,7 +91,7 @@ class MapApp(tk.Tk):
         self.shot = 0
         self.rortex = None
         self.scalar = 0
-        self.field = SCALAR1_VARNAME
+        self.field = 0
         self.curr_centers = None
         self.prev_centers = None
         self.curr_line = None
@@ -136,7 +139,10 @@ class MapApp(tk.Tk):
         self.bind("<Right>", self.go_forward)
         self.bind("<Escape>", self.release_track)
         self.bind("<Control-z>", self.undo_last)
-        self.bind("<space>", self.switch_field)
+        # self.bind("<space>", )
+        self.bind("<q>", self.switch_field)
+        self.bind("<w>", self.switch_field)
+        self.bind("<e>", self.switch_field)
         self.focus_set()
 
         if self.path_save_file:
@@ -144,6 +150,7 @@ class MapApp(tk.Tk):
         self.create_map()
 
     def create_map(self):
+        from time import time
 
         if self.scalar is not None:
             # land
@@ -178,26 +185,26 @@ class MapApp(tk.Tk):
         # scalar background
         remove_collections(self.scalar)
 
-        if len(self.file_rortex[self.field].shape) == 4:
-            scalar_field = self.file_rortex[self.field][self.shot, LEVEL, :, :]
+        if len(self.file_rortex[SCALARS[self.field]["name"]].shape) == 4:
+            scalar_field = self.file_rortex[SCALARS[self.field]["name"]][self.shot, LEVEL, :, :]
         else:
-            scalar_field = self.file_rortex[self.field][self.shot, :, :]
+            scalar_field = self.file_rortex[SCALARS[self.field]["name"]][self.shot, :, :]
 
         # scalar_field = np.where(LAND != 0, scalar_field, np.nan)
         min_val = np.nanmin(scalar_field)
         max_val = np.nanmax(scalar_field)
+        scalar_levels = np.arange(min_val, max_val, SCALARS[self.field]["step"])
 
-        if self.field == SCALAR1_VARNAME:
-            scalar_levels = np.arange(min_val, max_val, SCALAR1_LEVELS_STEP)
-            self.scalar = self.ax.contour(self.mesh_lon, self.mesh_lat, scalar_field.T, levels=scalar_levels,
-                                          zorder=2, colors="darkolivegreen", linewidths=0.3)
+        if SCALARS[self.field]["fill"]:
+            self.scalar = self.ax.contourf(self.mesh_lon, self.mesh_lat, scalar_field.T, levels=scalar_levels,
+                                           extend='both', cmap=SCALARS[self.field]["cmap"], zorder=4)
         else:
-            scalar_levels = np.arange(min_val, max_val, SCALAR2_LEVELS_STEP)
-            self.scalar = self.ax.contourf(self.mesh_lon, self.mesh_lat, scalar_field.T,
-                                           levels=scalar_levels, extend='both', cmap=SCALAR2_CMAP, zorder=4)
+            self.scalar = self.ax.contour(self.mesh_lon, self.mesh_lat, scalar_field.T, levels=scalar_levels,
+                                          colors="darkolivegreen", linewidths=0.3, zorder=2)
+
         self.canvas.draw()
 
-    def update_time(self, event):
+    def update_time(self, event=None):
         time_str = self.time_entry.get()
         try:
             target_time = (dt.datetime.strptime(time_str, "%Y-%m-%d-%H") -
@@ -249,10 +256,14 @@ class MapApp(tk.Tk):
     def switch_field(self, event=None):
         remove_collections(self.scalar)
         self.scalar = None
-        if self.field == SCALAR1_VARNAME:
-            self.field = SCALAR2_VARNAME
-        else:
-            self.field = SCALAR1_VARNAME
+
+        if event.keysym == "q":
+            self.field = 0
+        elif event.keysym == "w":
+            self.field = 1
+        elif event.keysym == "e":
+            self.field = 2
+
         self.create_map()
 
     def custom_format_coord(self, x, y):
@@ -295,7 +306,6 @@ class MapApp(tk.Tk):
             self.change_path(folder_path, "TRACKS_FOLDER")
 
     def on_click(self, event):
-
         global cent_track
         if event.inaxes != self.ax or event.dblclick:
             return
@@ -386,7 +396,6 @@ class MapApp(tk.Tk):
         self.canvas.draw()
 
     def on_mouse_move(self, event):
-
         if self.prev_point and self.curr_point is None and event.inaxes == self.ax:
             if self.curr_line:
                 self.curr_line.remove()

@@ -11,12 +11,11 @@ LEVEL = 0  # Level of interest
 RORTEX_VARNAME = 'R2D'  # Criteria to plot (contourf)
 LOCAL_EXTR_VARNAME = 'local_extr_cluster'  # dots to plot (scatter)
 
-SCALARS = {
-	'scalar1': {'name':'geopotential', 'step': 50  , 'cmap': '' },
-	'scalar2': {'name':'cloudfrac'   , 'step': 0.01, 'cmap': 'binary_r'},
-	# 'scalar2': {'name':'WSPD'        , 'step': 1   , 'cmap': 'viridis' },
-}
-
+SCALARS = [
+    {'name': 'geopotential', 'fill': False, 'step': 50, 'cmap': ''},
+    {'name': 'cloudfrac', 'fill': True, 'step': 0.01, 'cmap': 'binary_r'},
+    {'name': 'WSPD', 'fill': True, 'step': 1, 'cmap': 'viridis'},
+]
 
 TRACKS_FOLDER = 'track_folder'  # track output folder
 FILE_RORTEX = "2019-01.nc"  # Input file #
