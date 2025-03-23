@@ -4,22 +4,22 @@ Project for manual eddies tracking written by Elizaveta Ezhova (October, 2024).
 
 ## Installing
 
-All packages are listed in requirements.txt, so you can install it using pip or Anaconda.
+All packages are listed in environment.yml, so you can install it using pip or Anaconda.
 
 ```sh
-conda create --name clicker_env
+cd EddyClicker
+conda env create --file environment.yml
 conda activate clicker_env
-conda install --yes --file requirements.txt
 python eddyclicker.py
 ```
 
-```sh
+<!-- ```sh
 python -m venv clicker_env
 source clicker_env/bin/activate
 pip install -r requirements.txt
 python eddyclicker.py
 ```
-
+ -->
 ## Using
 
 ### Data Preprocessing
@@ -86,8 +86,8 @@ NTHETA = 36
 
 ### Navigation
 
-* `↑` - move to next stamp
-* `↓` - move to prev stamp
+* `->` - move to next stamp
+* `<-` - move to prev stamp
 * `LMC` - select the point
 * `Esc` - undo the last action
 * `RMC` - save the track
@@ -102,7 +102,7 @@ You can also use matplotlib build-in buttons to ZOOM and MOVE the plot.
 
 It is strongly suggested to track one vortex at a time!
 
-The current time step is displayed in the title. You can use the up and down arrow keys on the keyboard to move forward
+The current time step is displayed in the title. You can use the left and right arrow keys on the keyboard to move forward
 and backward in time. The current coordinates of the centers of the identified vortices are shown as black dots, while
 the previous ones are shown as circles. To draw a track, you need to connect a black dot to a circle.
 

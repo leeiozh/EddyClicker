@@ -132,8 +132,8 @@ class MapApp(tk.Tk):
         self.canvas.mpl_connect("button_press_event", self.on_click)
         self.canvas.mpl_connect("motion_notify_event", self.on_mouse_move)
 
-        self.bind("<Down>", self.go_back)
-        self.bind("<Up>", self.go_forward)
+        self.bind("<Left>", self.go_back)
+        self.bind("<Right>", self.go_forward)
         self.bind("<Escape>", self.release_track)
         self.bind("<Control-z>", self.undo_last)
         self.bind("<space>", self.switch_field)
