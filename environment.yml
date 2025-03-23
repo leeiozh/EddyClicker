@@ -5,7 +5,7 @@ dependencies:
   - python=3.12.2
   - pandas
   - cartopy
-  - matplotlib=3.9.2
+  - matplotlib
   - netCDF4
   - numpy
   - scipy

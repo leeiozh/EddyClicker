@@ -250,8 +250,11 @@ class Track:
 
 def remove_collections(collection):
     if collection:
-        for coll in collection.collections:
-            coll.remove()
+        try:
+            collection.remove()
+        except AttributeError:
+            for coll in collection.collections:
+                coll.remove()
 
 
 def remove_streamline(streamlines):
