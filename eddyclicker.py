@@ -150,11 +150,10 @@ class MapApp(tk.Tk):
         self.create_map()
 
     def create_map(self):
-        from time import time
 
         if self.scalar is not None:
             # land
-            self.ax.contourf(self.mesh_lon, self.mesh_lat, LAND.T, zorder=3, colors="gray")
+            self.ax.contour(self.mesh_lon, self.mesh_lat, LAND.T, levels=1, zorder=10, colors="k", lw=10)
 
             # rortex
             remove_collections(self.rortex)
@@ -189,6 +188,9 @@ class MapApp(tk.Tk):
             scalar_field = self.file_rortex[SCALARS[self.field]["name"]][self.shot, LEVEL, :, :]
         else:
             scalar_field = self.file_rortex[SCALARS[self.field]["name"]][self.shot, :, :]
+
+        if SCALARS[self.field]["name"] == "geopotential":
+            scalar_field[LAND == 0] = np.nan
 
         # scalar_field = np.where(LAND != 0, scalar_field, np.nan)
         min_val = np.nanmin(scalar_field)

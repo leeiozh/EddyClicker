@@ -24,7 +24,7 @@ FILE_SAVE = f"test.txt"
 # Get land map
 ds_land = Dataset(FILE_RORTEX)
 LAND = ds_land["HGT"][:, :]
-LAND = np.where(LAND > 5, 0, np.nan)
+LAND = np.where(LAND > 5, 0, 1)
 
 # Level height at the title (km)
 LEV_HGT = np.nanmean(ds_land["geopotential"][0, LEVEL, :, :]) / 10 / 1000
