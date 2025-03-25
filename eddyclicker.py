@@ -91,6 +91,7 @@ class MapApp(tk.Tk):
         self.shot = 0
         self.rortex = None
         self.scalar = 0
+        self.cbar = None
         self.field = 0
         self.curr_centers = None
         self.prev_centers = None
@@ -153,7 +154,7 @@ class MapApp(tk.Tk):
 
         if self.scalar is not None:
             # land
-            self.ax.contour(self.mesh_lon, self.mesh_lat, LAND.T, levels=1, zorder=10, colors="k", lw=10)
+            self.ax.contour(self.mesh_lon, self.mesh_lat, LAND.T, levels=1, zorder=10, colors="k", linewidths=1)
 
             # rortex
             remove_collections(self.rortex)
@@ -204,6 +205,15 @@ class MapApp(tk.Tk):
             self.scalar = self.ax.contour(self.mesh_lon, self.mesh_lat, scalar_field.T, levels=scalar_levels,
                                           colors="darkolivegreen", linewidths=0.3, zorder=2)
 
+        if self.cbar is not None:
+            self.cbar.set_ticks([])
+
+        cax = self.ax.inset_axes([1.02, 0.0, 0.02, 1])
+
+        if SCALARS[self.field]["name"] == "geopotential":
+            self.cbar = self.fig.colorbar(self.rortex, cax=cax)
+        else:
+            self.cbar = self.fig.colorbar(self.scalar, cax=cax)
         self.canvas.draw()
 
     def update_time(self, event=None):
