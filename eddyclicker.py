@@ -206,14 +206,15 @@ class MapApp(tk.Tk):
                                           colors="darkolivegreen", linewidths=0.3, zorder=2)
 
         if self.cbar is not None:
+            self.cbar.ax.clear()
             self.cbar.set_ticks([])
 
         cax = self.ax.inset_axes([1.02, 0.0, 0.02, 1])
 
         if SCALARS[self.field]["name"] == "geopotential":
-            self.cbar = self.fig.colorbar(self.rortex, cax=cax)
+            self.cbar = self.fig.colorbar(self.rortex, cax=cax, label="rortex")
         else:
-            self.cbar = self.fig.colorbar(self.scalar, cax=cax)
+            self.cbar = self.fig.colorbar(self.scalar, cax=cax, label=SCALARS[self.field]["name"])
         self.canvas.draw()
 
     def update_time(self, event=None):
