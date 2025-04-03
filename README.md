@@ -61,7 +61,7 @@ python eddyclicker.py
 ```
 A window will open, where the coastline is shown with a black curve, the rortex field is displayed in color, the geopotential field is shown with contour lines, and hollow circles represent vortex centers. In the first time step, you won't be able to do anything, so you need to press `->` to move to the next time step. Now, black dots will appear—these are the vortex centers from the previous time step. You need to do  left mouse button click (LMC) on a black dot and then on a hollow circle—this will be the first segment of the trajectory. Next, we define the size of the vortex by marking an ellipse that will encompass the vortex. The first two LMC's  designate the major (longest) axis of the ellipse. The third click marks the minor axis. After this, a blue ellipse will be displayed, enclosing your vortex. You can zoom in or move the image using the *matplotlib* system buttons.
 
---------- КАРТИНКА С ОБЩИМ ПЛАНОМ + КНОПКИ ---------
+![[1.png]]
 
 **NOTE: THE PROGRAM'S ALGORITHM ALLOWS YOU TO TRACE ONLY ONE VORTEX AT A TIME!**
 
@@ -69,7 +69,9 @@ Navigation between time steps is done using the arrow keys. `->` and `<-`.
 
 Once the track has been completed (the vortex has ended its life), right-click and answer 'Yes' to the prompt about saving the file. Then proceed to the next vortex.
 
---------- КАРТИНКА С ПРИГЛАШЕНИЕМ ---------
+After the track has been saved, it is removed from the database, and you will no longer see the points of its centers.
+
+
 # Tips
 
 1. It's better for the ellipse to be larger than the vortex rather than smaller.
