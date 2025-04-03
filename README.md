@@ -26,8 +26,8 @@ python eddyclicker.py
 
 The input file should be one has to contain all necessary data:
 
-* 1d (time)     : XTIME as linux epoch ('XXX since 1979-01-01')
-* 2d (y,x)      : XLAT, XLONG
+* 1d (time)     : XTIME as linux epoch ('XXX since 1970-01-01')
+* 2d (y,x)      : XLAT, XLONG, topography 
 * 3d (time,y,x) : Rortex field, scalar field (ex. geopotential), coordinates of Rortex extremes, second plot field (
   WSPD, CF, etc)
 

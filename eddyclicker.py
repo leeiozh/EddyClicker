@@ -19,7 +19,7 @@ from const import *
 # kill -9 $(ps ax | grep eddy | cut -f1 -d' ' | head -1)
 
 cent_track = 0
-
+nscalar = 0
 
 # а в этом был сакральный смысл?
 # SCALAR1_VARNAME = SCALARS['scalar1']['name']
@@ -152,11 +152,13 @@ class MapApp(tk.Tk):
 
     def create_map(self):
 
+        
         if self.scalar is not None:
-            # land
+            
+            # LAND
             self.ax.contour(self.mesh_lon, self.mesh_lat, LAND.T, levels=1, zorder=10, colors="k", linewidths=1)
 
-            # rortex
+            # Rortex
             remove_collections(self.rortex)
             rortex = self.file_rortex[RORTEX_VARNAME][self.shot, LEVEL, :, :]
             rortex_data = np.where(rortex <= 0, np.nan, rortex)
@@ -178,19 +180,25 @@ class MapApp(tk.Tk):
                                                 edgecolor="k", zorder=6, s=50, lw=1)
 
             # title
-            title_str = f"{(dt.datetime(year=1970, month=1, day=1) + dt.timedelta(hours=int(self.file_rortex['Time'][self.shot]))).strftime('%Y-%m-%d %H:%M')} ({LEV_HGT:.1f} km)"
+            time_str = f"{(dt.datetime(year=1970, month=1, day=1) + dt.timedelta(hours=int(self.file_rortex['Time'][self.shot]))).strftime('%Y-%m-%d %H:%M')}"
+            level_hight_str = f"avg level hight = {LEV_HGT:.1f} km"
+            title_str = f"{time_str}, {level_hight_str}"
 
             self.ax.set_title(title_str, fontsize=20)
 
         # scalar background
         remove_collections(self.scalar)
 
-        if len(self.file_rortex[SCALARS[self.field]["name"]].shape) == 4:
-            scalar_field = self.file_rortex[SCALARS[self.field]["name"]][self.shot, LEVEL, :, :]
-        else:
-            scalar_field = self.file_rortex[SCALARS[self.field]["name"]][self.shot, :, :]
+        scalar_name = SCALARS[self.field]["name"]
 
-        if SCALARS[self.field]["name"] == "geopotential":
+        if len(self.file_rortex[scalar_name].shape) == 4:
+            scalar_field = self.file_rortex[scalar_name][self.shot, LEVEL, :, :]
+        elif len(self.file_rortex[scalar_name].shape) == 3:
+            scalar_field = self.file_rortex[scalar_name][self.shot, :, :]
+        else:
+            exit(f"######################\nDimention of {scalar_name} not eq 3 or 4. EXIT!\n######################" )
+
+        if scalar_name == GEOPOTENTIAL_VARNAME:
             scalar_field[LAND == 0] = np.nan
 
         # scalar_field = np.where(LAND != 0, scalar_field, np.nan)
@@ -211,10 +219,10 @@ class MapApp(tk.Tk):
 
         cax = self.ax.inset_axes([1.02, 0.0, 0.02, 1])
 
-        if SCALARS[self.field]["name"] == "geopotential":
+        if scalar_name == GEOPOTENTIAL_VARNAME:
             self.cbar = self.fig.colorbar(self.rortex, cax=cax, label="rortex")
         else:
-            self.cbar = self.fig.colorbar(self.scalar, cax=cax, label=SCALARS[self.field]["name"])
+            self.cbar = self.fig.colorbar(self.scalar, cax=cax, label=scalar_name)
         self.canvas.draw()
 
     def update_time(self, event=None):

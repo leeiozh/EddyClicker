@@ -1,33 +1,47 @@
 from netCDF4 import Dataset
 import numpy as np
 
-### MAIN VARIABLES
+###############################################################################
+### CHANGE THIS START #########################################################
 
-# GUI windows size
+# GUI WINDOWS SIZE
 SCREEN_HEIGHT = 850
 WINDOW_WIDTH = 1500
 
-LEVEL = 0  # Level of interest
-RORTEX_VARNAME = 'R2D'  # Criteria to plot (contourf)
-LOCAL_EXTR_VARNAME = 'local_extr_cluster'  # dots to plot (scatter)
+# INPUT AND OUTPUT FILE 
+FILE_RORTEX = "TEST.nc"  
+TRACKS_FOLDER = "track_folder"  # track output folder
 
+# REQUIRED VARIABLES
+LEVEL = 0  									# Level of interest
+RORTEX_VARNAME = "R2D" 						# Rortex variable to plot
+LOCAL_EXTR_VARNAME = "local_extr_cluster"  	# dots to plot (scatter)
+GEOPOTENTIAL_VARNAME = "geopotential"  		# contour to plot above Rortex field
+HGT_VARNAME = "HGT" 						# coastline plot (2D curve)
+
+# OTHER VARIABLES (vars to help recognize vortices)
 SCALARS = [
-    {'name': 'geopotential', 'fill': False, 'step': 50, 'cmap': ''},
-    {'name': 'cloudfrac', 'fill': True, 'step': 0.01, 'cmap': 'binary_r'},
-    {'name': 'WSPD', 'fill': True, 'step': 1, 'cmap': 'viridis'},
+	{"name":GEOPOTENTIAL_VARNAME, "fill": False, "step": 50  , "cmap": ""},           # REQUIRED, Key Q
+	{"name":"cloudfrac"         , "fill": True , "step": 0.01, "cmap": "binary_r"},   # Optional, Key W
+	{"name":"WSPD"              , "fill": True , "step": 1   , "cmap": "viridis" },   # Optional, Key E
 ]
 
-TRACKS_FOLDER = 'track_folder'  # track output folder
-FILE_RORTEX = "2019-01.nc"  # Input file #
-FILE_SAVE = f"test.txt"
+### CHANGE THIS END   #########################################################
+###############################################################################
+
+
+
+
+
+### BELOW: YOU CAN ONLY CHANGE IF YOU KNOW WHAT YOU ARE DOING!
 
 # Get land map
 ds_land = Dataset(FILE_RORTEX)
-LAND = ds_land["HGT"][:, :]
+LAND = ds_land[HGT_VARNAME][:, :]
 LAND = np.where(LAND > 5, 0, 1)
 
 # Level height at the title (km)
-LEV_HGT = np.nanmean(ds_land["geopotential"][0, LEVEL, :, :]) / 10 / 1000
+LEV_HGT = np.nanmean(ds_land[GEOPOTENTIAL_VARNAME][0, LEVEL, :, :]) / 10 / 1000
 ds_land.close()
 
 # Map settings
