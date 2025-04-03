@@ -1,5 +1,6 @@
 __pycache__
 *.nc
+!TEST.nc
 *.npy
 track_plots
 track_folder
