@@ -38,36 +38,47 @@ The input file should be one has to contain all necessary data:
 Edit the `const.file`:
 
 ```python
-# DATASET DESCRIPTION (not nesesary )
-RES = 'SMP'
-PREF = '6km'
+from netCDF4 import Dataset
+import numpy as np
 
-### MAIN VARIABLES
+###############################################################################
+### CHANGE THIS START #########################################################
 
-# GUI windows size
-SCREEN_HEIGHT = 650
-WINDOW_WIDTH = 1200
+# GUI WINDOWS SIZE
+SCREEN_HEIGHT = 850
+WINDOW_WIDTH = 1500
 
-LEVEL = 0  # Level of interest
-RORTEX_VARNAME = 'R2D'  # Criteria to plot (contourf)
-LOCAL_EXTR_VARNAME = 'local_extr_cluster'  # dots to track (scatter)
-SCALAR1_VARNAME = 'geopotential'  # help field (contour)
-SCALAR1_LEVELS_STEP = 50  # contour interval
-SCALAR1_LEVELS_FINE_STEP = 10  # contour interval view
-SCALAR2_VARNAME = 'WSPD'  # help field (at spacebar)
+# INPUT AND OUTPUT FILE 	
+FILE_RORTEX = "TEST.nc"  					# Data inputfile
+TRACKS_FOLDER = "track_folder"  			# track output folder
 
-TRACKS_FOLDER = 'track_folder'  # Output folder for track files
-FILE_RORTEX = '2019-01.nc'  # Input file
-FILE_SAVE = f'test.txt'
+# REQUIRED VARIABLES
+LEVEL = 0  									# Level of interest
+RORTEX_VARNAME = "R2D" 						# Rortex variable to plot
+LOCAL_EXTR_VARNAME = "local_extr_cluster"  	# dots to plot (scatter)
+GEOPOTENTIAL_VARNAME = "geopotential"  		# contour to plot above Rortex field
+HGT_VARNAME = "HGT" 						# topography for coastline plot 
+
+# OTHER VARIABLES (vars to help recognize vortices)
+SCALARS = [
+	{"name":GEOPOTENTIAL_VARNAME, "fill": False, "step": 50  , "cmap": ""},           # REQUIRED, Key Q
+	{"name":"cloudfrac"         , "fill": True , "step": 0.01, "cmap": "binary_r"},   # Optional, Key W
+	{"name":"WSPD"              , "fill": True , "step": 1   , "cmap": "viridis" },   # Optional, Key E
+]
+
+### CHANGE THIS END   #########################################################
+###############################################################################
+
+
+### BELOW: YOU CAN ONLY CHANGE IF YOU KNOW WHAT YOU ARE DOING!
 
 # Get land map
 ds_land = Dataset(FILE_RORTEX)
-LAND = ds_land["HGT"][:, :]
-LAND = np.where(LAND > 5, 0, np.nan)
+LAND = ds_land[HGT_VARNAME][:, :]
+LAND = np.where(LAND > 5, 0, 1)
 
-# Level height (km) at the title. Needed ones
-LEV_HGT = np.nanmean(
-    ds_land["geopotential"][0, LEVEL, :, :]) / 10 / 1000
+# Level height at the title (km)
+LEV_HGT = np.nanmean(ds_land[GEOPOTENTIAL_VARNAME][0, LEVEL, :, :]) / 10 / 1000
 ds_land.close()
 
 # Map settings
@@ -76,11 +87,10 @@ from pyproj import Geod
 GEOD = Geod(ellps="WGS84")
 PHI = np.linspace(0, 2 * np.pi, 100)
 
-first_time = False
-
-# CIRCLE SETTINGS FOR POSTPROCESSING (CHECK TRACK)
+# FOR POSTPROCESSING (CHECK TRACK)
 NRADIUS = 100
 NTHETA = 36
+
 
 ```
 
@@ -92,8 +102,8 @@ NTHETA = 36
 * `Esc` - undo the last action
 * `RMC` - save the track
 * `2xLMC` - pop the point
-* `spase` - switch to addinional field (`SCALAR2`) and back
 * `cntr + z` - undo the last ellipse and track segment at ones
+* `q`, `w`,`e` - to switch between SCALAR fields (as help to identify vortex)
 * Upper level field - time to jump instantly
 
 You can also use matplotlib build-in buttons to ZOOM and MOVE the plot.
