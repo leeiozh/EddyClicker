@@ -160,7 +160,14 @@ class MapApp(tk.Tk):
 
             # Rortex
             remove_collections(self.rortex)
-            rortex = self.file_rortex[RORTEX_VARNAME][self.shot, LEVEL, :, :]
+
+            if len(self.file_rortex[RORTEX_VARNAME].shape) == 4:
+                rortex = self.file_rortex[RORTEX_VARNAME][self.shot, LEVEL, :, :]
+            elif len(self.file_rortex[RORTEX_VARNAME].shape) == 3:
+                rortex = self.file_rortex[RORTEX_VARNAME][self.shot, :, :]
+            else:
+                exit(f"######################\nDimention of {RORTEX_VARNAME} not eq 3 or 4. EXIT!\n######################" )
+
             rortex_data = np.where(rortex <= 0, np.nan, rortex)
             self.rortex = self.ax.contourf(self.mesh_lon, self.mesh_lat, rortex_data.T,
                                            levels=10, zorder=3, cmap="gnuplot_r", alpha=0.8)
