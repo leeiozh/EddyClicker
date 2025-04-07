@@ -37,11 +37,11 @@ FILE_RORTEX = "TEST.nc"
 TRACKS_FOLDER = "track_folder"  # track output folder
 
 # REQUIRED VARIABLES
-LEVEL = 0  									# Level of interest
-RORTEX_VARNAME = "R2D" 						# Rortex variable to plot
-LOCAL_EXTR_VARNAME = "local_extr_cluster"  	# dots to plot (scatter)
-GEOPOTENTIAL_VARNAME = "geopotential"  		# contour to plot above Rortex field
-HGT_VARNAME = "HGT" 						# coastline plot (2D curve)
+LEVEL = 0 # Level of interest
+RORTEX_VARNAME = "R2D" # Rortex variable to plot
+LOCAL_EXTR_VARNAME = "local_extr_cluster" # dots to plot (scatter)
+GEOPOTENTIAL_VARNAME = "geopotential" # contour to plot above Rortex field
+HGT_VARNAME = "HGT" # coastline plot (2D curve)
 
 # OTHER VARIABLES (vars to help recognize vortices)
 SCALARS = [
