@@ -53,7 +53,7 @@ class MapApp(tk.Tk):
         x_offset = 0
         y_offset = 0
         self.geometry(f"{WINDOW_WIDTH}x{SCREEN_HEIGHT}+{x_offset}+{y_offset}")
-        self.resizable(False, False)
+        self.resizable(True, True)
         # self.geometry("1000x1000")
 
         # if first_time:
@@ -428,7 +428,7 @@ class MapApp(tk.Tk):
         mask = self.centers[self.shot + c, :, :] > 0
         centers = np.column_stack((self.mesh_lon[mask.T], self.mesh_lat[mask.T]))
         for center in centers:
-            if np.isclose([x, y], center, atol=5).all():
+            if np.isclose([x, y], center, atol=2).all():
                 return True, Point(self.shot + c, center[0], center[1])
         return False, Point(-1, -1, -1)
 
