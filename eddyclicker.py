@@ -21,6 +21,7 @@ from const import *
 cent_track = 0
 nscalar = 0
 
+
 # а в этом был сакральный смысл?
 # SCALAR1_VARNAME = SCALARS['scalar1']['name']
 # SCALAR2_VARNAME = SCALARS['scalar2']['name']
@@ -152,9 +153,8 @@ class MapApp(tk.Tk):
 
     def create_map(self):
 
-        
         if self.scalar is not None:
-            
+
             # LAND
             self.ax.contour(self.mesh_lon, self.mesh_lat, LAND.T, levels=1, zorder=10, colors="k", linewidths=1)
 
@@ -166,7 +166,7 @@ class MapApp(tk.Tk):
             elif len(self.file_rortex[RORTEX_VARNAME].shape) == 3:
                 rortex = self.file_rortex[RORTEX_VARNAME][self.shot, :, :]
             else:
-                exit(f"######################\nDimention of {RORTEX_VARNAME} not eq 3 or 4. EXIT!\n######################" )
+                exit(f"###################\nDimention of {RORTEX_VARNAME} not eq 3 or 4. EXIT!\n##################")
 
             rortex_data = np.where(rortex <= 0, np.nan, rortex)
             self.rortex = self.ax.contourf(self.mesh_lon, self.mesh_lat, rortex_data.T,
@@ -203,9 +203,9 @@ class MapApp(tk.Tk):
         elif len(self.file_rortex[scalar_name].shape) == 3:
             scalar_field = self.file_rortex[scalar_name][self.shot, :, :]
         else:
-            exit(f"######################\nDimention of {scalar_name} not eq 3 or 4. EXIT!\n######################" )
+            exit(f"######################\nDimention of {scalar_name} not eq 3 or 4. EXIT!\n######################")
 
-        if scalar_name == GEOPOTENTIAL_VARNAME:
+        if LAND_MASK:
             scalar_field[LAND == 0] = np.nan
 
         # scalar_field = np.where(LAND != 0, scalar_field, np.nan)
@@ -218,7 +218,7 @@ class MapApp(tk.Tk):
                                            extend='both', cmap=SCALARS[self.field]["cmap"], zorder=4)
         else:
             self.scalar = self.ax.contour(self.mesh_lon, self.mesh_lat, scalar_field.T, levels=scalar_levels,
-                                          colors="darkolivegreen", linewidths=0.3, zorder=2)
+                                          colors="darkolivegreen", linewidths=0.3, zorder=3)
 
         if self.cbar is not None:
             self.cbar.ax.clear()

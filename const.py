@@ -9,28 +9,27 @@ SCREEN_HEIGHT = 850
 WINDOW_WIDTH = 1500
 
 # INPUT AND OUTPUT FILE 
-FILE_RORTEX = "TEST.nc"  
+FILE_RORTEX = "TEST.nc"
 TRACKS_FOLDER = "track_folder"  # track output folder
 
 # REQUIRED VARIABLES
-LEVEL = 0  									# Level of interest
-RORTEX_VARNAME = "R2D" 						# Rortex variable to plot
-LOCAL_EXTR_VARNAME = "local_extr_cluster"  	# dots to plot (scatter)
-GEOPOTENTIAL_VARNAME = "geopotential"  		# contour to plot above Rortex field
-HGT_VARNAME = "HGT" 						# coastline plot (2D curve)
+LEVEL = 0  # Level of interest
+RORTEX_VARNAME = "R2D"  # Rortex variable to plot
+LOCAL_EXTR_VARNAME = "local_extr_cluster"  # dots to plot (scatter)
+GEOPOTENTIAL_VARNAME = "geopotential"  # contour to plot above Rortex field
+HGT_VARNAME = "HGT"  # coastline plot (2D curve)
 
 # OTHER VARIABLES (vars to help recognize vortices)
 SCALARS = [
-	{"name":GEOPOTENTIAL_VARNAME, "fill": False, "step": 50  , "cmap": ""},           # REQUIRED, Key Q
-	{"name":"cloudfrac"         , "fill": True , "step": 0.01, "cmap": "binary_r"},   # Optional, Key W
-	{"name":"WSPD"              , "fill": True , "step": 1   , "cmap": "viridis" },   # Optional, Key E
+    {"name": GEOPOTENTIAL_VARNAME, "fill": False, "step": 50, "cmap": ""},  # REQUIRED, Key Q
+    {"name": "cloudfrac", "fill": True, "step": 0.01, "cmap": "binary_r"},  # Optional, Key W
+    {"name": "WSPD", "fill": True, "step": 1, "cmap": "viridis"},  # Optional, Key E
 ]
+
+LAND_MASK = True
 
 ### CHANGE THIS END   #########################################################
 ###############################################################################
-
-
-
 
 
 ### BELOW: YOU CAN ONLY CHANGE IF YOU KNOW WHAT YOU ARE DOING!
