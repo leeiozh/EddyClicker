@@ -90,6 +90,7 @@ class MapApp(tk.Tk):
         self.centers = np.asarray(self.file_rortex[LOCAL_EXTR_VARNAME][:, LEVEL, :, :], dtype=float)
 
         self.shot = 0
+        self.land = None
         self.rortex = None
         self.scalar = 0
         self.cbar = None
@@ -125,6 +126,9 @@ class MapApp(tk.Tk):
         self.ax = self.fig.add_subplot(111)
         self.ax.format_coord = self.custom_format_coord
 
+        self.land = self.ax.contour(self.mesh_lon, self.mesh_lat, LAND.T, levels=1, zorder=10, colors="k",
+                                    linewidths=1)
+
         self.canvas = FigureCanvasTkAgg(self.fig, master=figure_frame)
         self.canvas.draw()
         self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
@@ -154,9 +158,6 @@ class MapApp(tk.Tk):
     def create_map(self):
 
         if self.scalar is not None:
-
-            # LAND
-            self.ax.contour(self.mesh_lon, self.mesh_lat, LAND.T, levels=1, zorder=10, colors="k", linewidths=1)
 
             # Rortex
             remove_collections(self.rortex)
@@ -226,7 +227,7 @@ class MapApp(tk.Tk):
 
         cax = self.ax.inset_axes([1.02, 0.0, 0.02, 1])
 
-        if scalar_name == GEOPOTENTIAL_VARNAME:
+        if scalar_name == "geopotential":
             self.cbar = self.fig.colorbar(self.rortex, cax=cax, label="rortex")
         else:
             self.cbar = self.fig.colorbar(self.scalar, cax=cax, label=scalar_name)
