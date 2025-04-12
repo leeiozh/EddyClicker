@@ -48,7 +48,7 @@ def main():
     ### READ: NC FILE
 
     with xr.open_dataset(FILE_RORTEX) as ds:
-        hgt = ds['hgt']
+        hgt = ds[HGT_VARNAME]
         hgt = xr.where(hgt > 5, 1, np.nan)
 
     # with xr.open_dataset(FILE_RORTEX) as ds:
@@ -66,7 +66,7 @@ def main():
         it_wrf = int(row['time_ind'])
         it_trk = int(row.iloc[0])
 
-        ror_src = ds[RORTEX_VARNAME][it_wrf, 0]
+        ror_src = ds[RORTEX_VARNAME][it_wrf, 0] 
         ror_nan = xr.where(((ror_src < 10) & (ror_src > -10)), np.nan, ror_src)
 
         if it_trk != 0:
@@ -91,10 +91,12 @@ def main():
             # Вырезать данные из эллипса
             data_ax2 = el.interpol_data(ror_src.values, NRADIUS, NTHETA)
 
-            wspd = np.sqrt(ds['ue'][it_wrf, 0].values ** 2 + ds['ve'][it_wrf, 0].values ** 2)
-            data_ax3 = el.interpol_data(wspd, NRADIUS, NTHETA)
+            data_ax3 = el.interpol_data(ds[SCALARS[0]["name"]][it_wrf].values, NRADIUS, NTHETA)
 
-            data_ax4 = el.interpol_data(ds['geopotential'][it_wrf, 0].values, NRADIUS, NTHETA)
+            data_ax4 = el.interpol_data(ds[SCALARS[1]["name"]][it_wrf].values, NRADIUS, NTHETA)
+            
+            data_ax5 = el.interpol_data(ds[SCALARS[2]["name"]][it_wrf,LEVEL].values, NRADIUS, NTHETA)
+            # data_ax5 = el.interpol_data(ds["geopotential"][it_wrf,LEVEL].values, NRADIUS, NTHETA)
 
             azimuths = np.radians(np.linspace(0, 360, NTHETA))
             zeniths = np.arange(0, NRADIUS, 1)
@@ -109,7 +111,7 @@ def main():
         ax2 = fig.add_subplot(spec[0, 2], projection='polar')
         ax3 = fig.add_subplot(spec[0, 3], projection='polar')
         ax4 = fig.add_subplot(spec[1, 2], projection='polar')
-        # ax5 = fig.add_subplot(spec[1, 1], projection = 'polar')
+        ax5 = fig.add_subplot(spec[1, 3], projection = 'polar')
         # ax6 = fig.add_subplot(spec[1, 2], projection = 'polar')
 
         hgt.plot(ax=ax1, add_colorbar=False, alpha=0.3, cmap='Greys')
@@ -184,24 +186,29 @@ def main():
         ax2.tick_params(direction='in', length=0, width=0)
         ax2.axes.xaxis.set_ticklabels([])
         ax2.axes.yaxis.set_ticklabels([])
-
-        ax2.set_title("Rortex")
+        ax2.set_title("Rortex", fontsize=8)
 
         ### PLOT: AX3
 
         # Plot data function
 
         if it_trk != 0 and not bad:
+
+            levels = np.linspace(np.min(data_ax3), np.max(data_ax3), 21)
+            
             ax3.contourf(
                 theta,
                 r,
                 data_ax3,
+                levels=levels,
+                cmap='RdYlBu_r',  # pplt.Colormap('ColdHot'), #cmaps.NCV_blu_red, # 'RdYlBu_r',
             )
 
         ax3.grid(color='gray', alpha=0.5, linestyle=':')
         ax3.tick_params(direction='in', length=0, width=0)
         ax3.axes.xaxis.set_ticklabels([])
         ax3.axes.yaxis.set_ticklabels([])
+        ax3.set_title(SCALARS[0]["name"], fontsize=8)
 
         ### PLOT: AX4
 
@@ -218,7 +225,7 @@ def main():
                 data_ax4,
                 # vmin=vmin, vmax=vmax,
                 levels=levels,
-                cmap='Purples_r',  # pplt.Colormap('ColdHot'), #cmaps.NCV_blu_red, # 'RdYlBu_r',
+                cmap=SCALARS[1]["cmap"],  # pplt.Colormap('ColdHot'), #cmaps.NCV_blu_red, # 'RdYlBu_r',
                 extend='both',
             )
 
@@ -226,10 +233,28 @@ def main():
         ax4.tick_params(direction='in', length=0, width=0)
         ax4.axes.xaxis.set_ticklabels([])
         ax4.axes.yaxis.set_ticklabels([])
+        ax4.set_title(SCALARS[1]["name"], fontsize=8)
 
-        ax2.set_title("Wind at 10", fontsize=8)
-        ax3.set_title("Rortex", fontsize=8)
-        ax4.set_title("Geopotential", fontsize=8)
+        if it_trk != 0 and not bad:
+            # mod_val = np.max( np.abs( data_ax4 ) )
+            # vmin, vmax = -mod_val, mod_val
+            levels = np.linspace(np.min(data_ax5), np.max(data_ax5), 21)
+
+            ax5.contourf(
+                theta,
+                r,
+                data_ax5,
+                # vmin=vmin, vmax=vmax,
+                levels=levels,
+                cmap=SCALARS[2]["cmap"],  # pplt.Colormap('ColdHot'), #cmaps.NCV_blu_red, # 'RdYlBu_r',
+                extend='both',
+            )
+
+        ax5.grid(color='gray', alpha=0.5, linestyle=':')
+        ax5.tick_params(direction='in', length=0, width=0)
+        ax5.axes.xaxis.set_ticklabels([])
+        ax5.axes.yaxis.set_ticklabels([])
+        ax5.set_title(SCALARS[2]["name"], fontsize=8)
 
         plt.savefig(f"{folder_path}/{it_trk:04d}.png", dpi=300)  # , transparent=True
         # plt.show()
