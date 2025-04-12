@@ -6,6 +6,7 @@ import numpy as np
 matplotlib.use("TkAgg")
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+import matplotlib.patches as patches
 import datetime as dt
 from glob import glob
 from shutil import move
@@ -125,7 +126,6 @@ class MapApp(tk.Tk):
         self.fig = Figure(figsize=(8, 8 * ratio), dpi=100)
         self.ax = self.fig.add_subplot(111)
         self.ax.format_coord = self.custom_format_coord
-
         self.land = self.ax.contour(self.mesh_lon, self.mesh_lat, LAND.T, levels=1, zorder=10, colors="k",
                                     linewidths=1)
 
@@ -206,7 +206,7 @@ class MapApp(tk.Tk):
         else:
             exit(f"######################\nDimention of {scalar_name} not eq 3 or 4. EXIT!\n######################")
 
-        if LAND_MASK:
+        if not SCALARS[self.field]["land"]:
             scalar_field[LAND == 0] = np.nan
 
         # scalar_field = np.where(LAND != 0, scalar_field, np.nan)
@@ -214,7 +214,7 @@ class MapApp(tk.Tk):
         max_val = np.nanmax(scalar_field)
         scalar_levels = np.arange(min_val, max_val, SCALARS[self.field]["step"])
 
-        if SCALARS[self.field]["fill"]:
+        if SCALARS[self.field]["cmap"] != "":
             self.scalar = self.ax.contourf(self.mesh_lon, self.mesh_lat, scalar_field.T, levels=scalar_levels,
                                            extend='both', cmap=SCALARS[self.field]["cmap"], zorder=4)
         else:
@@ -224,13 +224,12 @@ class MapApp(tk.Tk):
         if self.cbar is not None:
             self.cbar.ax.clear()
             self.cbar.set_ticks([])
-
-        cax = self.ax.inset_axes([1.02, 0.0, 0.02, 1])
+        self.cax = self.ax.inset_axes([1.02, 0.0, 0.02, 1])
 
         if scalar_name == "geopotential":
-            self.cbar = self.fig.colorbar(self.rortex, cax=cax, label="rortex")
+            self.cbar = self.fig.colorbar(self.rortex, cax=self.cax, label="rortex")
         else:
-            self.cbar = self.fig.colorbar(self.scalar, cax=cax, label=scalar_name)
+            self.cbar = self.fig.colorbar(self.scalar, cax=self.cax, label=scalar_name)
         self.canvas.draw()
 
     def update_time(self, event=None):

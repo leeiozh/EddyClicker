@@ -9,7 +9,7 @@ SCREEN_HEIGHT = 850
 WINDOW_WIDTH = 1500
 
 # INPUT AND OUTPUT FILE 
-FILE_RORTEX = "NAADl_2010_new.nc"
+FILE_RORTEX = "TEST.nc"
 TRACKS_FOLDER = "track_folder"  # track output folder
 
 # REQUIRED VARIABLES
@@ -20,12 +20,10 @@ HGT_VARNAME = "HGT"  # coastline plot (2D curve)
 
 # OTHER VARIABLES (vars to help recognize vortices)
 SCALARS = [
-    {"name": "slp", "fill": False, "step": 1, "cmap": ""},  # REQUIRED, Key Q
-    {"name": "cloudfrac", "fill": True, "step": 0.01, "cmap": "binary_r"},  # Optional, Key W
-    {"name": "WSPD", "fill": True, "step": 1, "cmap": "viridis"},  # Optional, Key E
+    {"name": "slp", "land": True, "step": 1, "cmap": ""},  # REQUIRED, Key Q
+    {"name": "cloudfrac", "land": False, "step": 0.01, "cmap": "binary_r"},  # Optional, Key W
+    {"name": "wspd", "land": False, "step": 1, "cmap": "viridis"},  # Optional, Key E
 ]
-
-LAND_MASK = True
 
 ### CHANGE THIS END   #########################################################
 ###############################################################################
