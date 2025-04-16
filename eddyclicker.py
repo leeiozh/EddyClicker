@@ -481,8 +481,8 @@ class MapApp(tk.Tk):
             times_ns = times.astype("int64").to_numpy()
 
         for f in files:
-            df = pd.read_csv(f)
             try:
+                df = pd.read_csv(f)
                 track_times = pd.to_datetime(df["time"])
                 track_ns = track_times.astype("int64").to_numpy()
                 diffs = np.abs(track_ns[:, None] - times_ns[None, :])
