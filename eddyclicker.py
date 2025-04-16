@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 import matplotlib
 import numpy as np
+import pandas as pd
 
 matplotlib.use("TkAgg")
 from matplotlib.figure import Figure
@@ -474,11 +475,33 @@ class MapApp(tk.Tk):
 
     def load_tracks(self, path):
         files = sorted(glob(path + "/[!~$]*.csv"))
+
+        with xr.open_dataset(FILE_RORTEX) as ds:
+            times = pd.to_datetime(ds["Time"].values)
+            times_ns = times.astype("int64").to_numpy()
+
         for f in files:
             df = pd.read_csv(f)
-            self.centers[df['time_ind'].astype('int64'),
-            df['pyc_ind'].astype('int64'),
-            df['pxc_ind'].astype('int64')] = np.nan
+            try:
+                track_times = pd.to_datetime(df["time"])
+                track_ns = track_times.astype("int64").to_numpy()
+                diffs = np.abs(track_ns[:, None] - times_ns[None, :])
+
+                matches = diffs <= 1_000_000_000
+                matched_rows, matched_cols = np.where(matches)
+
+                if len(matched_rows) != len(track_ns):
+                    print(f"Time mismatch in {f} with {FILE_RORTEX} time grid!")
+                    continue  # skip this file
+
+                time_ind = np.full(len(track_ns), -1)
+                time_ind[matched_rows] = matched_cols
+
+                self.centers[time_ind,  # df['time_ind'].astype('int64')
+                df['pyc_ind'].astype('int64'),
+                df['pxc_ind'].astype('int64')] = np.nan
+            except Exception as e:
+                print(f"Failed to load track from {f}: {e}")
             self.tracks.append(0)
         print(f"loaded {len(self.tracks)} tracks from {path}")
         self.canvas.draw()
