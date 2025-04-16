@@ -197,46 +197,23 @@ class Track:
     def save(self):
         filename = f"{TRACKS_FOLDER}/{self.index:09d}.csv"
 
-        ptt_ind = []
-        pit_ind = []
-        pxc_ind = []
-        pyc_ind = []
-        px1_ind = []
-        py1_ind = []
-        px2_ind = []
-        py2_ind = []
-        px3_ind = []
-        py3_ind = []
-
         with xr.open_dataset(FILE_RORTEX) as ds:
-            times = ds['Time']
+            times = ds['Time'].load()
 
-        for po in self.ellps:
+        track_data = {
+            'time': [times[po.t].values for po in self.ellps],
+            'time_ind': [po.t for po in self.ellps],
+            'pxc_ind': [po.x0 for po in self.ellps],
+            'pyc_ind': [po.y0 for po in self.ellps],
+            'px1_ind': [po.p1[0] for po in self.ellps],
+            'py1_ind': [po.p1[1] for po in self.ellps],
+            'px2_ind': [po.p2[0] for po in self.ellps],
+            'py2_ind': [po.p2[1] for po in self.ellps],
+            'px3_ind': [po.p3[0] for po in self.ellps],
+            'py3_ind': [po.p3[1] for po in self.ellps],
+        }
 
-            ptt_ind.append(times[po.t].values)
-            pit_ind.append(po.t)
-            pxc_ind.append(po.x0)
-            pyc_ind.append(po.y0)
-            px1_ind.append(po.p1[0])
-            py1_ind.append(po.p1[1])
-            px2_ind.append(po.p2[0])
-            py2_ind.append(po.p2[1])
-            px3_ind.append(po.p3[0])
-            py3_ind.append(po.p3[1])
-
-            try:
-                if po.plot and po.plot in self.ax.lines:
-                    po.plot.remove()
-            except:
-                pass
-
-        track_data = {'time': ptt_ind, 'time_ind': pit_ind,
-                      'pxc_ind': pxc_ind, 'pyc_ind': pyc_ind,
-                      'px1_ind': px1_ind, 'py1_ind': py1_ind,
-                      'px2_ind': px2_ind, 'py2_ind': py2_ind,
-                      'px3_ind': px3_ind, 'py3_ind': py3_ind}
-        df = pd.DataFrame(track_data)
-        df.to_csv(filename)
+        pd.DataFrame(track_data).to_csv(filename, index=False)
 
         try:
             if self.plot and self.plot in self.ax.lines:
