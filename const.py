@@ -46,6 +46,9 @@ from pyproj import Geod
 GEOD = Geod(ellps="WGS84")
 PHI = np.linspace(0, 2 * np.pi, 100)
 
-# FOR POSTPROCESSING (CHECK TRACK)
+# FOR POSTPROCESSING
+# CHECK_TRACK.PY
 NRADIUS = 100
 NTHETA = 36
+# CHECK_TRACK_ANIMATION.PY
+TRACKS_ANIMATION_FOLDER = "track_plots_animation"
