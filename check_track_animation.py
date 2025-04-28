@@ -18,7 +18,7 @@ def get_tracks(files,time):
 
     for ii in files:
 
-        trk_df = pd.read_csv(ii, index_col=1, skipinitialspace=True)
+        trk_df = pd.read_csv(ii, index_col='time', skipinitialspace=True)
 
         tmp = trk_df[trk_df.index == time]
 

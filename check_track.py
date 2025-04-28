@@ -39,7 +39,7 @@ def main():
     ### READ: TRACK
 
     trk_file = Path(args.input)
-    trk_df = pd.read_csv(trk_file, index_col=1, skipinitialspace=True)
+    trk_df = pd.read_csv(trk_file, index_col='time', skipinitialspace=True)
     # print(trk_df)
 
     folder_path = Path(f'./track_plots/{trk_file.stem}')
