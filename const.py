@@ -20,7 +20,7 @@ HGT_VARNAME = "HGT"  # coastline plot (2D curve)
 
 # OTHER VARIABLES (vars to help recognize vortices)
 SCALARS = [
-    {"name": "slp", "land": True, "step": 1, "cmap": ""},  # REQUIRED, Key Q
+    {"name": "geopotential", "land": True, "step": 100, "cmap": ""},  # REQUIRED, Key Q
     {"name": "cloudfrac", "land": False, "step": 0.01, "cmap": "binary_r"},  # Optional, Key W
     {"name": "wspd", "land": False, "step": 1, "cmap": "viridis"},  # Optional, Key E
 ]
