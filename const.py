@@ -50,5 +50,6 @@ PHI = np.linspace(0, 2 * np.pi, 100)
 # CHECK_TRACK.PY
 NRADIUS = 100
 NTHETA = 36
+TRACKS_CHECK_FOLDER = "track_check_plots"
 # CHECK_TRACK_ANIMATION.PY
-TRACKS_ANIMATION_FOLDER = "track_plots_animation"
+TRACKS_ANIMATION_FOLDER = "track_animation"
