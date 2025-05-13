@@ -40,9 +40,8 @@ def main():
 
     trk_file = Path(args.input)
     trk_df = pd.read_csv(trk_file, index_col='time', skipinitialspace=True)
-    # print(trk_df)
 
-    folder_path = Path(f'./track_plots/{trk_file.stem}')
+    folder_path = Path(f'./{TRACKS_CHECK_FOLDER}/{trk_file.stem}')
     folder_path.mkdir(parents=True, exist_ok=True)
 
     ### READ: NC FILE
@@ -88,10 +87,16 @@ def main():
 
             xe, ye = el.get_perimeter()
 
+            xe = np.append(xe,xe[0])
+            ye = np.append(ye,ye[0])
+
             # Вырезать данные из эллипса
             data_ax2 = el.interpol_data(ror_src.values, NRADIUS, NTHETA)
 
-            data_ax3 = el.interpol_data(ds[SCALARS[0]["name"]][it_wrf].values, NRADIUS, NTHETA)
+            try:
+                data_ax3 = el.interpol_data(ds[SCALARS[0]["name"]][it_wrf].values, NRADIUS, NTHETA)
+            except:
+                data_ax3 = el.interpol_data(ds[SCALARS[0]["name"]][it_wrf,0].values, NRADIUS, NTHETA)
 
             data_ax4 = el.interpol_data(ds[SCALARS[1]["name"]][it_wrf].values, NRADIUS, NTHETA)
             
@@ -104,7 +109,7 @@ def main():
 
         ### PLOT
 
-        fig = plt.figure(figsize=([15, 7]), constrained_layout=True)
+        fig = plt.figure(figsize=([WINDOW_WIDTH/100, SCREEN_HEIGHT/100]), constrained_layout=True)
         spec = gridspec.GridSpec(ncols=4, nrows=2, hspace=0.1, wspace=0)  #
         # spec.update(wspace = 1.5, hspace = 0.3)
         ax1 = fig.add_subplot(spec[0:2, 0:2])
@@ -181,7 +186,6 @@ def main():
                 extend='both',
             )
 
-        # cbar = ax2.colorbar(pax2)
         ax2.grid(color='gray', alpha=0.5, linestyle=':')
         ax2.tick_params(direction='in', length=0, width=0)
         ax2.axes.xaxis.set_ticklabels([])
@@ -196,19 +200,25 @@ def main():
 
             levels = np.linspace(np.min(data_ax3), np.max(data_ax3), 21)
             
-            ax3.contourf(
+            plt3 = ax3.contourf(
                 theta,
                 r,
                 data_ax3,
                 levels=levels,
                 cmap='RdYlBu_r',  # pplt.Colormap('ColdHot'), #cmaps.NCV_blu_red, # 'RdYlBu_r',
             )
+            cbar = fig.colorbar(plt3,format='%.0f',fraction=0.046, pad=0.04)
+            cbar.ax.tick_params(labelsize=6)
 
         ax3.grid(color='gray', alpha=0.5, linestyle=':')
         ax3.tick_params(direction='in', length=0, width=0)
         ax3.axes.xaxis.set_ticklabels([])
         ax3.axes.yaxis.set_ticklabels([])
-        ax3.set_title(SCALARS[0]["name"], fontsize=8)
+
+        if it_trk != 0 and not bad:
+            ax3.set_title(f"{SCALARS[0]["name"]} ({data_ax3[0,0]:.1f}/{np.min(data_ax3):.1f})", fontsize=8)
+        else:
+            ax3.set_title(f"{SCALARS[0]["name"]} (NaN)", fontsize=8)
 
         ### PLOT: AX4
 
