@@ -2,8 +2,10 @@ __pycache__
 *.nc
 !TEST.nc
 *.npy
-track_plots
-track_folder
+*.png
+!1.png
+plots
+track_folder*
 
 Notes.txt
 

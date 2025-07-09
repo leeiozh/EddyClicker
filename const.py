@@ -9,7 +9,7 @@ SCREEN_HEIGHT = 850
 WINDOW_WIDTH = 1500
 
 # INPUT AND OUTPUT FILE 
-FILE_RORTEX = "TEST.nc"
+FILE_RORTEX = "SMP2019.nc"
 TRACKS_FOLDER = "track_folder"  # track output folder
 
 # REQUIRED VARIABLES
@@ -18,17 +18,15 @@ RORTEX_VARNAME = "R2D"  # Rortex variable to plot
 LOCAL_EXTR_VARNAME = "local_extr_cluster"  # dots to plot (scatter)
 HGT_VARNAME = "HGT"  # coastline plot (2D curve)
 
-# OTHER VARIABLES (vars to help recognize vortices)
+# OTHER VARIABLES IN FILE_RORTEX (vars to help recognize vortices)
 SCALARS = [
-    {"name": "geopotential", "land": True, "step": 100, "cmap": ""},  # REQUIRED, Key Q
+    {"name": "slp", "land": True, "step": 4, "cmap": ""},  # REQUIRED, Key Q
     {"name": "cloudfrac", "land": False, "step": 0.01, "cmap": "binary_r"},  # Optional, Key W
     {"name": "wspd", "land": False, "step": 1, "cmap": "viridis"},  # Optional, Key E
 ]
 
 ### CHANGE THIS END   #########################################################
 ###############################################################################
-
-
 ### BELOW: YOU CAN ONLY CHANGE IF YOU KNOW WHAT YOU ARE DOING!
 
 # Get land map
@@ -50,5 +48,6 @@ PHI = np.linspace(0, 2 * np.pi, 100)
 # CHECK_TRACK.PY
 NRADIUS = 100
 NTHETA = 36
-# CHECK_TRACK_ANIMATION.PY
-TRACKS_ANIMATION_FOLDER = "track_plots_animation"
+TRACKS_CHECK_FOLDER = "plots"
+TRACKS_PIC_FOLDER = "tracks"
+TRACKS_ANIMATION_FOLDER = "animation"

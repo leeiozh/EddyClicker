@@ -1,4 +1,6 @@
 #!/bin/bash
+# Help script
+# Do not use if you don't know what is it
 
 # run `module rm cdo && conda activate cdo ``
 
