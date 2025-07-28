@@ -37,7 +37,7 @@ def get_time_lims(files,times):
     for ii in files:
 
         trk_df = pd.read_csv(ii, skipinitialspace=True)
-
+        
         mins.append(trk_df['time'].iloc[ 0])
         maxs.append(trk_df['time'].iloc[-1])
 
@@ -87,7 +87,7 @@ def main():
         # fig = plt.figure(figsize=([7, 7]), constrained_layout=True)
         # spec = gridspec.GridSpec(ncols=1, nrows=1, hspace=0.1, wspace=0)
         # ax1 = fig.add_subplot(spec[0])
-        fig, ax1 = plt.subplots(1, 1, figsize=(WINDOW_WIDTH/100, SCREEN_HEIGHT/150), constrained_layout=True)
+        fig, ax1 = plt.subplots(1, 1, figsize=(WINDOW_WIDTH/100, SCREEN_HEIGHT/150)) # , constrained_layout=True
 
 
         ax1.contour(LAND,
@@ -174,6 +174,7 @@ def main():
 
         plt.savefig(f"{folder_out}/tracks_{int(iit):05d}.png", dpi=150)  # , transparent=True
         # plt.show()
+        plt.clf()
         plt.close()
 
         iit = iit + 1
@@ -181,7 +182,7 @@ def main():
     print(f"FINISHED")
     print(f"Now you can make a movie:")
     print(f"# cd {folder_out}")
-    print(f"# ffmpeg -framerate 10 -pattern_type glob -i 'tracks_*.png' -c:v libx264 -pix_fmt yuv420p -vf 'pad=ceil(iw/2)*2:ceil(ih/2)*2' ../../fileout.mp4")
+    print(f"# ffmpeg -framerate 10 -pattern_type glob -i 'tracks_*.png' -c:v libx264 -pix_fmt yuv420p -vf 'pad=ceil(iw/2)*2:ceil(ih/2)*2' ../../{TRACKS_FOLDER}.mp4")
 
 
 if __name__ == "__main__":

@@ -71,7 +71,7 @@ def main():
 
     ax1.set_title(f"Tracks: {len(files)}, file: {FILE_RORTEX}")
 
-    # plt.savefig(f"{TRACKS_FOLDER}_map.png", dpi=150)  # , transparent=True
+    plt.savefig(f"./{TRACKS_CHECK_FOLDER}/{TRACKS_FOLDER}_map.png", dpi=150)  # , transparent=True
     plt.show()
     plt.close()
 
