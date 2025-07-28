@@ -1,13 +1,10 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import matplotlib
-import numpy as np
-import pandas as pd
 
 matplotlib.use("TkAgg")
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-import matplotlib.patches as patches
 import datetime as dt
 from glob import glob
 from shutil import move
@@ -108,6 +105,7 @@ class MapApp(tk.Tk):
         self.sel_el = False
         self.k = 1
         self.tracks = []
+        self.last_ind = 0
 
         if len(self.file_rortex["XLAT"].shape) == 3:  # РУДИМЕНТ (по идее можно удалить)
             ydim = self.file_rortex["XLAT"].shape[1]  # РУДИМЕНТ (по идее можно удалить)
@@ -377,8 +375,8 @@ class MapApp(tk.Tk):
                                       self.el_p1, self.el_p2, self.el_p3, self.ax)
 
                         if cent_track == -1:
-                            print(f"created {len(self.tracks)} track")
-                            new_track = Track(len(self.tracks), self.ax)
+                            print(f"created {self.last_ind} track")
+                            new_track = Track(len(self.tracks), self.last_ind, self.ax)
                             new_track.ellps.append(Ellipse(self.prev_point.t, self.prev_point.x, self.prev_point.y,
                                                            np.array([self.prev_point.x, self.prev_point.y]),
                                                            np.array([self.prev_point.x, self.prev_point.y]),
@@ -386,6 +384,7 @@ class MapApp(tk.Tk):
                                                            self.ax))
                             new_track.ellps.append(ell)
                             self.tracks.append(new_track)
+                            self.last_ind += 1
                             self.tracks[-1].draw()
 
                         else:
@@ -444,7 +443,7 @@ class MapApp(tk.Tk):
         for track in self.tracks:
             if track != 0 and track is not None:
                 if track.ellps[-1].x0 == point.x and track.ellps[-1].y0 == point.y:
-                    return track.index
+                    return track.ind_arr
         return -1
 
     def ask_to_save_track(self, index):
@@ -454,7 +453,8 @@ class MapApp(tk.Tk):
                 for p in self.tracks[index].ellps:
                     self.centers[p.t, p.y0, p.x0] = np.nan
                 self.tracks[index].save()
-                messagebox.showinfo("Saving", f"Track was saved into {self.path_save_file}/{index:09d}.csv")
+                messagebox.showinfo("Saving",
+                                    f"Track was saved into {self.path_save_file}/{(self.last_ind - 1):09d}.csv")
 
             if not response:
                 for po in self.tracks[index].ellps:
@@ -503,6 +503,7 @@ class MapApp(tk.Tk):
             except Exception as e:
                 print(f"Failed to load track from {f}: {e}")
             self.tracks.append(0)
+        self.last_ind = int(files[-1].split("/")[-1][:-4]) + 1
         print(f"loaded {len(self.tracks)} tracks from {path}")
         self.canvas.draw()
 

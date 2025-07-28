@@ -164,8 +164,9 @@ class Ellipse:
 
 
 class Track:
-    def __init__(self, index, ax):
-        self.index = index
+    def __init__(self, ind_arr, ind_name, ax):
+        self.ind_arr = ind_arr
+        self.ind_name = ind_name
         self.ellps = []
         self.ax = ax
         self.plot = None
@@ -195,7 +196,7 @@ class Track:
             self.ellps[-1].draw()
 
     def save(self):
-        filename = f"{TRACKS_FOLDER}/{self.index:09d}.csv"
+        filename = f"{TRACKS_FOLDER}/{self.ind_name:09d}.csv"
 
         with xr.open_dataset(FILE_RORTEX) as ds:
             times = ds['Time'].load()
