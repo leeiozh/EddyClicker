@@ -17,7 +17,7 @@ from const import *
 
 # kill -9 $(ps ax | grep eddy | cut -f1 -d' ' | head -1)
 
-cent_track = 0
+cent_track_ind, cent_track_name = 0, 0
 nscalar = 0
 
 
@@ -272,12 +272,12 @@ class MapApp(tk.Tk):
         self.canvas.draw()
 
     def undo_last(self, event=None):
-        global cent_track
-        if len(self.tracks) > cent_track:
-            if self.tracks[cent_track] and len(self.tracks[cent_track].ellps) > 0:
-                self.tracks[cent_track].ellps[-1].clean()
-                self.tracks[cent_track].ellps.pop()
-                self.tracks[cent_track].draw(flag=False)
+        global cent_track_ind
+        if len(self.tracks) > cent_track_ind:
+            if self.tracks[cent_track_ind] and len(self.tracks[cent_track_ind].ellps) > 0:
+                self.tracks[cent_track_ind].ellps[-1].clean()
+                self.tracks[cent_track_ind].ellps.pop()
+                self.tracks[cent_track_ind].draw(flag=False)
                 self.release_track()
 
     def switch_field(self, event=None):
@@ -333,7 +333,7 @@ class MapApp(tk.Tk):
             self.change_path(folder_path, "TRACKS_FOLDER")
 
     def on_click(self, event):
-        global cent_track
+        global cent_track_ind, cent_track_name
         if event.inaxes != self.ax or event.dblclick:
             return
 
@@ -356,7 +356,7 @@ class MapApp(tk.Tk):
                         print("second point selected")
 
                 else:  # have two points
-                    cent_track = self.in_track(self.prev_point)
+                    cent_track_ind, cent_track_name = self.in_track(self.prev_point)
 
                     if self.el_p1 is None:
                         self.el_p1 = DrawPoint(event.xdata, event.ydata,
@@ -374,7 +374,7 @@ class MapApp(tk.Tk):
                         ell = Ellipse(self.curr_point.t, self.curr_point.x, self.curr_point.y,
                                       self.el_p1, self.el_p2, self.el_p3, self.ax)
 
-                        if cent_track == -1:
+                        if cent_track_ind == -1:
                             print(f"created {self.last_ind} track")
                             new_track = Track(len(self.tracks), self.last_ind, self.ax)
                             new_track.ellps.append(Ellipse(self.prev_point.t, self.prev_point.x, self.prev_point.y,
@@ -388,8 +388,8 @@ class MapApp(tk.Tk):
                             self.tracks[-1].draw()
 
                         else:
-                            print(f"appended {len(self.tracks[cent_track].ellps)} point to {cent_track} track")
-                            self.tracks[cent_track].append(ell)
+                            print(f"appended {len(self.tracks[cent_track_ind].ellps)} point to {cent_track_name} track")
+                            self.tracks[cent_track_ind].append(ell)
                             self.tracks[-1].draw()
 
                         self.prev_point = None
@@ -404,22 +404,22 @@ class MapApp(tk.Tk):
         elif event.button == 3 and self.prev_point is None:
             cent_f, cent = self.is_center(event.xdata, event.ydata, -1)
             if cent_f:
-                cent_track = self.in_track(cent)
-                self.ask_to_save_track(cent_track)
+                cent_track_ind, cent_track_name = self.in_track(cent)
+                self.ask_to_save_track(cent_track_ind)
 
         elif event.dblclick and event.inaxes == self.ax:
             cent_f, cent = self.is_center(event.xdata, event.ydata, -1)
             if cent_f:
-                cent_track = self.in_track(cent)
-                if cent_track != -1:
+                cent_track_ind, cent_track_name = self.in_track(cent)
+                if cent_track_ind != -1:
                     point_index = -1
-                    for i, p in enumerate(self.tracks[cent_track].ellps):
+                    for i, p in enumerate(self.tracks[cent_track_ind].ellps):
                         if p.x0 == cent.x and p.y0 == cent.y:
                             point_index = i
                             break
                     if point_index != -1:
-                        self.tracks[cent_track].ellps.pop(point_index)
-                        self.tracks[cent_track].draw()
+                        self.tracks[cent_track_ind].ellps.pop(point_index)
+                        self.tracks[cent_track_ind].draw()
                         self.canvas.draw()
         self.canvas.draw()
 
@@ -443,18 +443,18 @@ class MapApp(tk.Tk):
         for track in self.tracks:
             if track != 0 and track is not None:
                 if track.ellps[-1].x0 == point.x and track.ellps[-1].y0 == point.y:
-                    return track.ind_arr
-        return -1
+                    return track.ind_arr, track.ind_name
+        return -1, -1
 
     def ask_to_save_track(self, index):
-        response = messagebox.askyesnocancel("Save Track", "Do you want to save this track?")
+        response = messagebox.askyesnocancel("Save Track", f"Do you want to save {self.tracks[index].ind_name} track?")
         if response is not None:
             if response:
                 for p in self.tracks[index].ellps:
                     self.centers[p.t, p.y0, p.x0] = np.nan
                 self.tracks[index].save()
                 messagebox.showinfo("Saving",
-                                    f"Track was saved into {self.path_save_file}/{(self.last_ind - 1):09d}.csv")
+                                    f"Track was saved into {self.path_save_file}/{self.tracks[index].ind_name:09d}.csv")
 
             if not response:
                 for po in self.tracks[index].ellps:
@@ -503,7 +503,10 @@ class MapApp(tk.Tk):
             except Exception as e:
                 print(f"Failed to load track from {f}: {e}")
             self.tracks.append(0)
-        self.last_ind = int(files[-1].split("/")[-1][:-4]) + 1
+        if len(files) > 0:
+            self.last_ind = int(files[-1].split("/")[-1][:-4]) + 1
+        else:
+            self.last_ind = 1
         print(f"loaded {len(self.tracks)} tracks from {path}")
         self.canvas.draw()
 
