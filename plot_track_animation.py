@@ -181,8 +181,7 @@ def main():
 
     print(f"FINISHED")
     print(f"Now you can make a movie:")
-    print(f"# cd {folder_out}")
-    print(f"# ffmpeg -framerate 10 -pattern_type glob -i 'tracks_*.png' -c:v libx264 -pix_fmt yuv420p -vf 'pad=ceil(iw/2)*2:ceil(ih/2)*2' ../../{TRACKS_FOLDER}.mp4")
+    print(f"# ffmpeg -framerate 10 -pattern_type glob -i /{folder_out}/'tracks_*.png' -c:v libx264 -pix_fmt yuv420p -vf 'pad=ceil(iw/2)*2:ceil(ih/2)*2' ./{TRACKS_CHECK_FOLDER}/{TRACKS_FOLDER}.mp4")
 
 
 if __name__ == "__main__":

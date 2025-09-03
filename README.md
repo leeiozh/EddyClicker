@@ -4,7 +4,7 @@
 ```bash
 git clone https://github.com/alexavr/EddyClicker.git
 cd EddyClicker
-conda env create --file environment.yml
+conda env create --file=environment.yml
 conda activate clicker_env
 python eddyclicker.py
 ```
