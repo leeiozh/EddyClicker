@@ -109,14 +109,14 @@ def main():
 
         ### PLOT
 
-        fig = plt.figure(figsize=([WINDOW_WIDTH/100, SCREEN_HEIGHT/100]), constrained_layout=True)
+        fig = plt.figure(figsize=(WINDOW_RATIO*8, 8), constrained_layout=True)
         # SMP
-        spec = gridspec.GridSpec(ncols=4, nrows=2, hspace=0.1, wspace=0)  #
-        ax1 = fig.add_subplot(spec[0, :]) # [row, col]
-        ax2 = fig.add_subplot(spec[1, 0], projection='polar')
-        ax3 = fig.add_subplot(spec[1, 1], projection='polar')
-        ax4 = fig.add_subplot(spec[1, 2], projection='polar')
-        ax5 = fig.add_subplot(spec[1, 3], projection = 'polar')
+        spec = gridspec.GridSpec(ncols=4, nrows=3, hspace=0.1, wspace=0)  #
+        ax1 = fig.add_subplot(spec[:2, :]) # [row, col]
+        ax2 = fig.add_subplot(spec[2, 0], projection='polar')
+        ax3 = fig.add_subplot(spec[2, 1], projection='polar')
+        ax4 = fig.add_subplot(spec[2, 2], projection='polar')
+        ax5 = fig.add_subplot(spec[2, 3], projection = 'polar')
         # NAAD
         # spec = gridspec.GridSpec(ncols=4, nrows=2, hspace=0.1, wspace=0)  #
         # ax1 = fig.add_subplot(spec[0, 0:2])

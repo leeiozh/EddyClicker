@@ -97,7 +97,7 @@ def main():
 # Plotting
 
     # Create a figure
-    fig = plt.figure(figsize=(8, 10)) # constrained_layout=True,
+    fig = plt.figure(figsize=(WINDOW_RATIO*8, 8)) # constrained_layout=True,
 
     # Add a GridSpec to the figure, defining a 3x3 grid
     gs = gridspec.GridSpec(6, 1)
