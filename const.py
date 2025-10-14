@@ -30,9 +30,7 @@ ds_land = Dataset(FILE_RORTEX)
 LAND = ds_land[HGT_VARNAME][:, :]
 LAND = np.where(LAND > 5, 0, 1)
 
-SCREEN_HEIGHT = LAND.shape[0]
-WINDOW_WIDTH = LAND.shape[1]
-WINDOW_RATIO = WINDOW_WIDTH/SCREEN_HEIGHT
+WINDOW_RATIO = LAND.shape[1]/LAND.shape[0]
 
 # Level height at the title (km)
 LEV_HGT = np.nanmean(ds_land["geopotential"][0, LEVEL, :, :]) / 10 / 1000
