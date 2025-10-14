@@ -5,8 +5,11 @@ import numpy as np
 ### CHANGE THIS START #########################################################
 
 # INPUT AND OUTPUT FILE 
-FILE_RORTEX = "SMP2019.nc"
-TRACKS_FOLDER = "track_folder.SMP.Matvey.2025-09-17"  # track output folder
+FILE_RORTEX = "TEST.nc"
+TRACKS_FOLDER = "track_folder"  # track output folder
+
+# FILE_RORTEX = "SMP2019.nc"
+# TRACKS_FOLDER = "track_folder.SMP.Matvey.2025-09-17"  # track output folder
 
 # REQUIRED VARIABLES
 LEVEL = 0  # Level of interest

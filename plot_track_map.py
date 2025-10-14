@@ -36,7 +36,7 @@ def main():
     files = [x for x in p if x.is_file()]
 
     # MAKE OUTPUT DIR
-    folder_out = Path(f'./{TRACKS_ANIMATION_FOLDER}/')
+    folder_out = Path(f'./{TRACKS_CHECK_FOLDER}/')
     folder_out.mkdir(parents=True, exist_ok=True)
 
 
