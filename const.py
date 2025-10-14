@@ -4,13 +4,9 @@ import numpy as np
 ###############################################################################
 ### CHANGE THIS START #########################################################
 
-# GUI WINDOWS SIZE
-SCREEN_HEIGHT = 850
-WINDOW_WIDTH  = 850
-
 # INPUT AND OUTPUT FILE 
-FILE_RORTEX = "NAADl_2010.nc"
-TRACKS_FOLDER = "track_folder"  # track output folder
+FILE_RORTEX = "SMP2019.nc"
+TRACKS_FOLDER = "track_folder.SMP.Matvey.2025-09-17"  # track output folder
 
 # REQUIRED VARIABLES
 LEVEL = 0  # Level of interest
@@ -33,6 +29,10 @@ SCALARS = [
 ds_land = Dataset(FILE_RORTEX)
 LAND = ds_land[HGT_VARNAME][:, :]
 LAND = np.where(LAND > 5, 0, 1)
+
+SCREEN_HEIGHT = LAND.shape[0]
+WINDOW_WIDTH = LAND.shape[1]
+WINDOW_RATIO = WINDOW_WIDTH/SCREEN_HEIGHT
 
 # Level height at the title (km)
 LEV_HGT = np.nanmean(ds_land["geopotential"][0, LEVEL, :, :]) / 10 / 1000
