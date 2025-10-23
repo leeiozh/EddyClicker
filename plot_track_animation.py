@@ -1,6 +1,6 @@
 
-import pandas as pd  #
-import xarray as xr  # conda install -c conda-forge xarray dask netCDF4 bottleneck
+import pandas as pd  
+import xarray as xr 
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -8,8 +8,6 @@ from pathlib import Path
 
 from const import *
 from track import *
-
-# ffmpeg -framerate 10 -i smp_%05d.png -c:v libx264 -r 30 -pix_fmt yuv420p fileout.mp4
 
 def get_tracks(files,time):
 
@@ -83,12 +81,7 @@ def main():
 
         print(times[itime])
 
-
-        # fig = plt.figure(figsize=([7, 7]), constrained_layout=True)
-        # spec = gridspec.GridSpec(ncols=1, nrows=1, hspace=0.1, wspace=0)
-        # ax1 = fig.add_subplot(spec[0])
-        fig, ax1 = plt.subplots(1, 1, figsize=(WINDOW_WIDTH/100, SCREEN_HEIGHT/150)) # , constrained_layout=True
-
+        fig, ax1 = plt.subplots(1, 1, figsize=(WINDOW_RATIO*8, 8)) # , constrained_layout=True
 
         ax1.contour(LAND,
             [0],
@@ -110,7 +103,6 @@ def main():
             add_colorbar=False,
         )
 
-
         tracks = get_tracks(files,str(times[itime]))
 
         ntracks = len(tracks)
@@ -119,17 +111,12 @@ def main():
 
             for itrk in tracks:
 
-                # print(itrk['pxc_ind'])
-                # print(float(itrk['pxc_ind'].values[0]))
-                # exit()
-
                 ax1.plot(
                     itrk['pxc_ind'].values,
                     itrk['pyc_ind'].values,
                     color = 'black',
                     linewidth=3,
                     )
-
 
                 tmp = itrk.reset_index()
                 points = tmp[ pd.to_datetime(tmp['time']) == times[itime]  ]
@@ -169,11 +156,11 @@ def main():
                     itrk['TrackNo'].values[0],
                     )
 
-        ax1.set_title(f"{times[itime]}", fontsize=8)
-        # ax1.set_title(f"{times[itime]} (no. of tracks on map = {ntracks})", fontsize=8)
+        # ax1.set_title(f"{times[itime]}", fontsize=8)
+        ax1.set_title(f"{times[itime]} (no. of tracks on map = {ntracks})", fontsize=8)
 
         plt.savefig(f"{folder_out}/tracks_{int(iit):05d}.png", dpi=150)  # , transparent=True
-        # plt.show()
+        plt.show()
         plt.clf()
         plt.close()
 

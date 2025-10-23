@@ -36,7 +36,7 @@ def main():
     files = [x for x in p if x.is_file()]
 
     # MAKE OUTPUT DIR
-    folder_out = Path(f'./{TRACKS_ANIMATION_FOLDER}/')
+    folder_out = Path(f'./{TRACKS_CHECK_FOLDER}/')
     folder_out.mkdir(parents=True, exist_ok=True)
 
 
@@ -48,7 +48,7 @@ def main():
     hgt = xr.where(hgt > 5, 1, np.nan)
 
 
-    fig, ax1 = plt.subplots(1, 1, figsize=(WINDOW_WIDTH/100, SCREEN_HEIGHT/150), constrained_layout=True)
+    fig, ax1 = plt.subplots(1, 1, figsize=(WINDOW_RATIO*8, 8), constrained_layout=True)
     hgt.plot(ax=ax1, add_colorbar=False, alpha=0.3, cmap='Greys')
 
 
